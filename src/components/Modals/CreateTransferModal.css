@@ -1,0 +1,45 @@
+/* Modal dimensions optimisées pour CreateTransferModal */
+.modal {
+  max-width: 450px;  /* desktop */
+  width: 90%;         /* responsive */
+  max-height: 75vh;   /* max 75% viewport height */
+  padding: 20px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow-y: auto;   /* scroll si contenu trop grand */
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 50;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+    padding: 16px;
+    max-height: 85vh;
+  }
+}
+
+/* Scrollbar styling */
+.modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
