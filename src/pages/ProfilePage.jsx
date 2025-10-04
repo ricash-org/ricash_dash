@@ -1,27 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Shield, 
-  Edit, 
-  Save, 
-  X, 
-  Camera,
-  Key,
-  Bell,
-  Globe,
-  Lock,
-  Eye,
-  EyeOff
+  User, Mail, Phone, MapPin, Calendar, Shield, Edit, Save, X, 
+  Camera, Key, Bell, Globe, Lock, Eye, EyeOff
 } from 'lucide-react'
 import { RicashCard } from '@/components/ui/ricash-card'
 import { RicashButton } from '@/components/ui/ricash-button'
 import { RicashInput } from '@/components/ui/ricash-input'
 import { RicashTabs, RicashTabsContent, RicashTabsList, RicashTabsTrigger } from '@/components/ui/ricash-navigation'
+import { AuthContext } from '@/hooks/useAuth'
+import profileService from '@/services/profilService'
 
 // Palette de couleurs Ricash
 const RICASH_COLORS = {
@@ -32,48 +20,91 @@ const RICASH_COLORS = {
   bleuVert: '#376470'
 }
 
-// Mock data utilisateur
-const mockUser = {
-  id: 'USR001',
-  nom: 'Dupont',
-  prenom: 'Jean',
-  email: 'jean.dupont@email.com',
-  telephone: '+33 6 12 34 56 78',
-  dateNaissance: '1985-03-15',
-  adresse: {
-    rue: '123 Avenue des Champs-Élysées',
-    ville: 'Paris',
-    codePostal: '75008',
-    pays: 'France'
-  },
-  avatar: null,
-  role: 'Administrateur',
-  dateCreation: '2024-01-15',
-  derniereConnexion: '2024-01-20T14:30:00',
-  preferences: {
-    langue: 'fr',
-    timezone: 'Europe/Paris',
-    notifications: {
+export default function ProfilePage() {
+  const navigate = useNavigate()
+  const { user: authUser, updateUser } = useContext(AuthContext)
+  const [isEditing, setIsEditing] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+
+    const [user, setUser] = useState(() => {
+    // Structure par défaut sécurisée
+    return authUser ? {
+      ...authUser,
+      preferences: authUser.preferences || {
+        langue: 'fr',
+        timezone: 'Europe/Paris',
+        notifications: {
+          email: true,
+          sms: false,
+          push: true
+        }
+      },
+      adresse: authUser.adresse || {
+        rue: '',
+        ville: '',
+        codePostal: '',
+        pays: ''
+      }
+    } : null;
+  });
+
+  const [formData, setFormData] = useState({
+    nom: user?.nom || '',
+    prenom: user?.prenom || '',
+    email: user?.email || '',
+    telephone: user?.telephone || '',
+    dateNaissance: user?.dateNaissance || '',
+    adresse: { ...(user?.adresse || {}) }
+  });
+
+  // Protection contre les accès à des propriétés undefined
+  const getNotifications = () => {
+    return user?.preferences?.notifications || {
       email: true,
       sms: false,
       push: true
-    }
-  }
-}
+    };
+  };
+  const [message, setMessage] = useState({ type: '', text: '' })
 
-export default function ProfilePage() {
-  const navigate = useNavigate()
-  const [isEditing, setIsEditing] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [user, setUser] = useState(mockUser)
-  const [formData, setFormData] = useState({
-    nom: user.nom,
-    prenom: user.prenom,
-    email: user.email,
-    telephone: user.telephone,
-    dateNaissance: user.dateNaissance,
-    adresse: { ...user.adresse }
-  })
+  // Charger les données du profil au montage du composant
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true)
+        const token = sessionStorage.getItem('token')
+        if (!token) {
+          navigate('/login')
+          return
+        }
+
+        const profileData = await profileService.getProfile(token)
+        setUser(profileData)
+        setFormData({
+          nom: profileData.nom || '',
+          prenom: profileData.prenom || '',
+          email: profileData.email || '',
+          telephone: profileData.telephone || '',
+          dateNaissance: profileData.dateNaissance || '',
+          adresse: profileData.adresse || { rue: '', ville: '', codePostal: '', pays: '' }
+        })
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error)
+        setMessage({ type: 'error', text: 'Erreur lors du chargement du profil' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [navigate])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -89,16 +120,73 @@ export default function ProfilePage() {
       dateNaissance: user.dateNaissance,
       adresse: { ...user.adresse }
     })
+    setMessage({ type: '', text: '' })
   }
 
-  const handleSave = () => {
-    setUser(prev => ({
-      ...prev,
-      ...formData
-    }))
-    setIsEditing(false)
-    // Ici on enverrait les données au serveur
-    console.log('Profil mis à jour:', formData)
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const token = sessionStorage.getItem('token')
+      
+      // Préparer les données pour l'envoi
+      const updates = {
+        nom: formData.nom,
+        prenom: formData.prenom,
+        telephone: formData.telephone,
+        email: formData.email
+      }
+
+      const updatedUser = await profileService.updateProfile(updates, token)
+      setUser(updatedUser)
+      
+      // Mettre à jour le contexte d'authentification
+      updateUser(updatedUser)
+      
+      setIsEditing(false)
+      setMessage({ type: 'success', text: 'Profil mis à jour avec succès' })
+      
+      // Effacer le message après 3 secondes
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error)
+      setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' })
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Le mot de passe doit contenir au moins 6 caractères' })
+      return
+    }
+
+    try {
+      setSaving(true)
+      const token = sessionStorage.getItem('token')
+      
+      await profileService.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      }, token)
+      
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setMessage({ type: 'success', text: 'Mot de passe changé avec succès' })
+      
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      
+    } catch (error) {
+      console.error('Erreur lors du changement de mot de passe:', error)
+      setMessage({ type: 'error', text: 'Erreur lors du changement de mot de passe' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -119,7 +207,15 @@ export default function ProfilePage() {
     }
   }
 
+  const handlePasswordInputChange = (field, value) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
   const formatDate = (dateString) => {
+    if (!dateString) return 'Non renseignée'
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -127,8 +223,111 @@ export default function ProfilePage() {
     })
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-[#F4F2EE]">
+        <div className="text-[#29475B]">Chargement du profil...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-[#F4F2EE]">
+        <div className="text-[#29475B]">Erreur de chargement du profil</div>
+      </div>
+    )
+  }
+
+  // Dans ton composant ProfilePage, ajoute ces fonctions :
+
+// Fonction pour sauvegarder l'image dans le localStorage
+const saveImageToLocalStorage = (imageData) => {
+  try {
+    localStorage.setItem(`profileImage_${user.id}`, imageData)
+    return true
+  } catch (error) {
+    console.error('Erreur sauvegarde locale:', error)
+    return false
+  }
+}
+
+// Fonction pour récupérer l'image du localStorage
+const getImageFromLocalStorage = () => {
+  try {
+    return localStorage.getItem(`profileImage_${user.id}`)
+  } catch (error) {
+    console.error('Erreur lecture locale:', error)
+    return null
+  }
+}
+
+// Fonction modifiée pour l'upload
+const handleImageUpload = async () => {
+  if (!profileImage) return
+  
+  try {
+    setUploadStatus('uploading')
+    
+    // Solution 1: Sauvegarde locale (sans backend)
+    if (imagePreview) {
+      const success = saveImageToLocalStorage(imagePreview)
+      if (success) {
+        // Mettre à jour l'état utilisateur avec l'image
+        const updatedUser = {
+          ...user,
+          profileImageUrl: imagePreview,
+          hasLocalImage: true // Flag pour identifier les images locales
+        }
+        
+        setUser(updatedUser)
+        updateUser(updatedUser) // Mettre à jour le contexte
+        setUploadStatus('success')
+        setMessage({ type: 'success', text: 'Photo de profil mise à jour avec succès' })
+      }
+    }
+    
+    // Solution 2: Avec backend (décommente si ton backend est prêt)
+    /*
+    const token = sessionStorage.getItem('token')
+    const formData = new FormData()
+    formData.append('profileImage', profileImage)
+    
+    const updatedUser = await profileService.uploadProfileImage(formData, token)
+    setUser(updatedUser)
+    setUploadStatus('success')
+    setMessage({ type: 'success', text: 'Photo de profil mise à jour avec succès' })
+    updateUser(updatedUser)
+    */
+    
+    // Réinitialiser
+    setTimeout(() => {
+      setUploadStatus('initial')
+      setProfileImage(null)
+      setImagePreview(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }, 2000)
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'upload:', error)
+    setUploadStatus('fail')
+    setMessage({ type: 'error', text: 'Erreur lors de la mise à jour de la photo' })
+  }
+}
+
   return (
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
+      {/* Message de statut */}
+      {message.text && (
+        <div className={`p-4 rounded-lg ${
+          message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
       {/* Page header */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
         <div className="flex justify-between items-center">
@@ -146,9 +345,10 @@ export default function ProfilePage() {
                 variant="accent"
                 size="lg"
                 onClick={handleEdit}
+                disabled={saving}
               >
                 <Edit className="mr-2 h-5 w-5" />
-                Modifier le profil
+                {saving ? 'Sauvegarde...' : 'Modifier le profil'}
               </RicashButton>
             ) : (
               <>
@@ -156,6 +356,7 @@ export default function ProfilePage() {
                   variant="outline"
                   size="lg"
                   onClick={handleCancel}
+                  disabled={saving}
                 >
                   <X className="mr-2 h-5 w-5" />
                   Annuler
@@ -164,9 +365,10 @@ export default function ProfilePage() {
                   variant="accent"
                   size="lg"
                   onClick={handleSave}
+                  disabled={saving}
                 >
                   <Save className="mr-2 h-5 w-5" />
-                  Sauvegarder
+                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                 </RicashButton>
               </>
             )}
@@ -174,7 +376,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Onglets de profil */}
+      {/* Le reste de ton JSX existant reste inchangé mais utilise maintenant les données dynamiques */}
       <RicashTabs defaultValue="personal" className="w-full">
         <RicashTabsList className="grid w-full grid-cols-3 bg-white rounded-2xl shadow-lg border border-[#376470]/10">
           <RicashTabsTrigger value="personal" className="flex items-center space-x-2">
@@ -191,7 +393,7 @@ export default function ProfilePage() {
           </RicashTabsTrigger>
         </RicashTabsList>
 
-        {/* Onglet Informations personnelles */}
+        {/* Onglet Informations personnelles - Maintenant dynamique */}
         <RicashTabsContent value="personal" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Photo de profil */}
@@ -199,7 +401,7 @@ export default function ProfilePage() {
               <div className="p-6 text-center">
                 <div className="relative inline-block mb-4">
                   <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#2B8286] to-[#B19068] flex items-center justify-center text-white text-4xl font-bold mx-auto">
-                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
+                    {user.prenom?.charAt(0) || ''}{user.nom?.charAt(0) || ''}
                   </div>
                   {isEditing && (
                     <button className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors">
@@ -212,19 +414,22 @@ export default function ProfilePage() {
                 </h3>
                 <p className="text-[#376470] mb-4">{user.role}</p>
                 <div className="space-y-2 text-sm text-[#376470]">
-                  <p>Membre depuis {formatDate(user.dateCreation)}</p>
-                  <p>Dernière connexion: {formatDate(user.derniereConnexion)}</p>
+                  <p>Email: {user.email}</p>
+                  {user.dateCreation && (
+                    <p>Membre depuis {formatDate(user.dateCreation)}</p>
+                  )}
                 </div>
               </div>
             </RicashCard>
 
-            {/* Informations détaillées */}
+            {/* Informations détaillées - Formulaire dynamique */}
             <RicashCard className="lg:col-span-2">
               <div className="p-6">
                 <h3 className="text-xl font-bold text-[#29475B] mb-6">
                   Informations personnelles
                 </h3>
                 <div className="grid gap-6 md:grid-cols-2">
+                  {/* Les champs de formulaire restent similaires mais utilisent formData */}
                   <div>
                     <label className="block text-sm font-medium text-[#29475B] mb-2">
                       Prénom
@@ -298,25 +503,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-[#29475B] mb-2">
-                      Date de naissance
-                    </label>
-                    {isEditing ? (
-                      <RicashInput
-                        type="date"
-                        value={formData.dateNaissance}
-                        onChange={(e) => handleInputChange('dateNaissance', e.target.value)}
-                      />
-                    ) : (
-                      <div className="flex items-center p-3 bg-[#F4F2EE] rounded-lg">
-                        <Calendar className="h-4 w-4 text-[#376470] mr-3" />
-                        <span className="text-[#29475B]">{formatDate(user.dateNaissance)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-[#29475B] mb-2">
                       Adresse
                     </label>
@@ -355,11 +542,82 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </RicashCard>
           </div>
+        </RicashTabsContent>
+
+        {/* Onglet Sécurité - Maintenant fonctionnel */}
+        <RicashTabsContent value="security" className="space-y-6">
+          <RicashCard>
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-[#29475B] mb-6">
+                Sécurité du compte
+              </h3>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-[#29475B] mb-2">
+                    Mot de passe actuel
+                  </label>
+                  <div className="relative">
+                    <RicashInput
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Entrez votre mot de passe actuel"
+                      className="pr-10"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-[#376470]" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-[#376470]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#29475B] mb-2">
+                    Nouveau mot de passe
+                  </label>
+                  <RicashInput
+                    type="password"
+                    placeholder="Entrez votre nouveau mot de passe"
+                    value={passwordData.newPassword}
+                    onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#29475B] mb-2">
+                    Confirmer le nouveau mot de passe
+                  </label>
+                  <RicashInput
+                    type="password"
+                    placeholder="Confirmez votre nouveau mot de passe"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                  />
+                </div>
+
+                <RicashButton 
+                  variant="accent" 
+                  onClick={handlePasswordChange}
+                  disabled={saving}
+                >
+                  <Key className="mr-2 h-4 w-4" />
+                  {saving ? 'Changement...' : 'Changer le mot de passe'}
+                </RicashButton>
+              </div>
+            </div>
+          </RicashCard>
         </RicashTabsContent>
 
         {/* Onglet Sécurité */}
@@ -456,7 +714,7 @@ export default function ProfilePage() {
                   </div>
                   <input
                     type="checkbox"
-                    checked={user.preferences.notifications.email}
+                    checked={getNotifications().email}
                     className="w-4 h-4 text-[#2B8286] rounded"
                   />
                 </div>
@@ -468,7 +726,7 @@ export default function ProfilePage() {
                   </div>
                   <input
                     type="checkbox"
-                    checked={user.preferences.notifications.sms}
+                    checked={getNotifications().sms} 
                     className="w-4 h-4 text-[#2B8286] rounded"
                   />
                 </div>
@@ -480,7 +738,7 @@ export default function ProfilePage() {
                   </div>
                   <input
                     type="checkbox"
-                    checked={user.preferences.notifications.push}
+                    checked={getNotifications().push}
                     className="w-4 h-4 text-[#2B8286] rounded"
                   />
                 </div>

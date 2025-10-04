@@ -1,53 +1,118 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AuthContext } from '@/hooks/useAuth'
-// import { authAPI, tokenStorage } from '../lib/api'
-// import logger from '../lib/logger'
-// import { config } from '../lib/config'
-// import { toast } from 'sonner'
+import axios from 'axios'
 
-// Fallbacks temporaires
+// Configuration
 const logger = { info: console.log, error: console.error, warn: console.warn }
-const config = { auth: { maxLoginAttempts: 5, lockoutDuration: 900000, sessionTimeout: 3600000, refreshTokenThreshold: 300000 } }
+const config = { 
+  auth: { 
+    maxLoginAttempts: 5, 
+    lockoutDuration: 900000, 
+    sessionTimeout: 3600000, 
+    refreshTokenThreshold: 300000 
+  } 
+}
 const toast = { success: console.log, error: console.error, info: console.info }
-const authAPI = { 
+
+// Service d'authentification avec le vrai backend
+ const authAPI = { 
   login: async (credentials) => {
-    // Identifiants de démonstration
-    const validCredentials = [
-      { email: 'admin@ricash.com', password: 'admin123', name: 'Administrateur', role: 'admin' },
-      { email: 'user@ricash.com', password: 'user123', name: 'Utilisateur', role: 'user' },
-      { email: 'demo@ricash.com', password: 'demo123', name: 'Démo', role: 'demo' },
-      { email: 'test@ricash.com', password: 'test123', name: 'Test', role: 'test' }
-    ]
-    
-    const user = validCredentials.find(
-      cred => cred.email === credentials.email && cred.password === credentials.password
-    )
-    
-    if (!user) {
-      throw new Error('Email ou mot de passe incorrect')
-    }
-    
-    return { 
-      user: { 
-        id: user.email, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role 
-      }, 
-      accessToken: `token_${user.email}`, 
-      refreshToken: `refresh_${user.email}` 
+    try {
+      // Créer les paramètres au format URL-encoded
+      const params = new URLSearchParams();
+      params.append('email', credentials.email);
+      params.append('password', credentials.password);
+
+      const response = await axios.post('http://localhost:8080/api/auth/auto-login', params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+      if (response.status !== 200) {
+        throw new Error('Email ou mot de passe incorrect');
+      }
+
+      const responseData = response.data;
+      
+      // ⬇️ CORRECTION : Structure cohérente avec votre réponse backend
+      const userData = {
+        id: responseData.userId,
+        name: responseData.userData?.nom || credentials.email,
+        email: credentials.email,
+        role: responseData.role
+      };
+
+      return { 
+        user: userData, 
+        accessToken: responseData.idToken, 
+        refreshToken: responseData.customToken 
+      };
+      
+    } catch (error) {
+      if (error.response) {
+        const errorMessage = error.response.data?.message || error.response.data?.error || 'Email ou mot de passe incorrect';
+        throw new Error(errorMessage);
+      } else if (error.request) {
+        throw new Error('Impossible de contacter le serveur');
+      } else {
+        throw new Error('Erreur de connexion inattendue');
+      }
     }
   },
-  logout: async () => {},
-  refreshToken: async () => ({ accessToken: 'new_token', refreshToken: 'new_refresh' })
-}
-const tokenStorage = {
-  getAccessToken: () => localStorage.getItem('token'),
-  getRefreshToken: () => localStorage.getItem('refresh'),
-  setTokens: (access, refresh) => { localStorage.setItem('token', access); localStorage.setItem('refresh', refresh) },
-  clearTokens: () => { localStorage.removeItem('token'); localStorage.removeItem('refresh'); localStorage.removeItem('ricash_user') }
-}
 
+  
+  logout: async () => {
+    const token = tokenStorage.getAccessToken();
+    if (token) {
+      try {
+        await axios.post('http://localhost:8080/api/auth/logout', {}, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        console.warn('Logout API call failed, continuing with local logout', error);
+      }
+    }
+  },
+  
+  refreshToken: async () => {
+    const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/refresh-token', {
+        refreshToken: refreshToken
+      });
+
+      return { 
+        accessToken: response.data.access_token || response.data.idToken,
+        refreshToken: response.data.refresh_token || response.data.refreshToken 
+      };
+    } catch (error) {
+      throw new Error('Token refresh failed: ' + error.message);
+    }
+  }
+};
+
+// Gestion des tokens
+const tokenStorage = {
+  getAccessToken: () => sessionStorage.getItem('token'),
+  getRefreshToken: () => sessionStorage.getItem('refreshToken'),
+  setTokens: (access, refresh) => { 
+    sessionStorage.setItem('token', access); 
+    sessionStorage.setItem('refreshToken', refresh);
+  },
+  clearTokens: () => { 
+    sessionStorage.removeItem('token'); 
+    sessionStorage.removeItem('refreshToken'); 
+    localStorage.removeItem('ricash_user');
+    localStorage.removeItem('ricash_lockout');
+  }
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -56,7 +121,7 @@ export function AuthProvider({ children }) {
   const [isLocked, setIsLocked] = useState(false)
   const [lockoutTime, setLockoutTime] = useState(null)
 
-  // Session timeout management - use refs to avoid infinite re-renders
+  // Session timeout management
   const sessionTimeoutId = useRef(null)
   const refreshTimeoutId = useRef(null)
 
@@ -99,7 +164,7 @@ export function AuthProvider({ children }) {
     }
   }, [isLocked, lockoutTime])
 
-  // Logout function - defined before setupSessionTimeout to avoid circular dependency
+  // Logout function
   const logout = useCallback(async (reason = 'User logout') => {
     try {
       logger.info('Logout initiated', { reason, userId: user?.id })
@@ -113,7 +178,6 @@ export function AuthProvider({ children }) {
       
     } catch (error) {
       logger.warn('Logout API call failed', { error })
-      // Continue with local logout even if API fails
     } finally {
       // Clear local state and storage
       setUser(null)
@@ -168,36 +232,47 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
-        const savedUser = localStorage.getItem('ricash_user')
+        const savedUser = localStorage.getItem('ricash_user');
+        const token = tokenStorage.getAccessToken();
         
-        // Pour la démo, on vérifie seulement si l'utilisateur existe
-        if (savedUser) {
-          const userData = JSON.parse(savedUser)
-          setUser(userData)
-          
-          // Générer un token pour la session
-          const accessToken = `token_${userData.email}`
-          const refreshToken = `refresh_${userData.email}`
-          tokenStorage.setTokens(accessToken, refreshToken)
-          
-          logger.info('Existing session restored', { 
-            userId: userData.id,
-            email: userData.email 
-          })
+        if (savedUser && token) {
+          // Optionnel: Valider le token avec le backend
+          try {
+            const validationResponse = await axios.post('http://localhost:8080/api/auth/verify-token', {}, {
+                  headers: {
+                    'Authorization': `Bearer ${token}`
+                  }
+                });
+
+            if (validationResponse.status === 200) {
+              const userData = JSON.parse(savedUser);
+              setUser(userData);
+              logger.info('Existing session restored', { 
+                userId: userData.id,
+                email: userData.email 
+              });
+            } else {
+              // Token invalide, nettoyer
+              tokenStorage.clearTokens();
+              localStorage.removeItem('ricash_user');
+            }
+          } catch (error) {
+            // En cas d'erreur, on garde la session locale
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+          }
         }
       } catch (error) {
-        logger.error('Error restoring session', { error })
-        // Clean up corrupted data
-        tokenStorage.clearTokens()
-        localStorage.removeItem('ricash_user')
+        logger.error('Error restoring session', { error });
+        tokenStorage.clearTokens();
+        localStorage.removeItem('ricash_user');
       } finally {
-        // Délai minimal pour éviter le flash de login
-        setTimeout(() => setIsLoading(false), 100)
+        setTimeout(() => setIsLoading(false), 100);
       }
-    }
+    };
 
-    checkExistingSession()
-  }, [])
+    checkExistingSession();
+  }, []);
 
   // Setup session timeout when user is set
   useEffect(() => {

@@ -7,6 +7,7 @@ import {
   EyeOff, 
   ArrowRight
 } from 'lucide-react'
+import axios from 'axios' // ⬅️ Importe Axios
 import richashLogo from '@/assets/richash.png'
 import bgRicash from '@/assets/bgrichash.jpg'
 import { Button } from '@/components/ui/button'
@@ -61,37 +62,38 @@ export default function Login() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
+// Dans Login.jsx - REMPLACEZ handleSubmit par ceci :
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  
+  if (!validateForm()) return
 
-    setIsLoading(true)
+  setIsLoading(true)
+  
+  try {
+    console.log('🔄 Tentative de connexion avec:', formData.email)
     
-    try {
-      console.log('Tentative de connexion avec:', formData.email)
-      
-      // Appel direct au contexte d'authentification
-      await login({
-        email: formData.email,
-        password: formData.password
-      })
-      
-      console.log('Connexion réussie!')
-      
-      // Redirection vers le dashboard après connexion réussie
-      navigate('/app/dashboard')
-      
-    } catch (error) {
-      console.error('Erreur de connexion:', error)
-      setErrors({ 
-        general: error.message || 'Erreur de connexion. Veuillez réessayer.' 
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    // ⬇️ UTILISEZ UNIQUEMENT LE CONTEXTE D'AUTHENTIFICATION
+    await login({
+      email: formData.email,
+      password: formData.password
+    })
+
+    console.log('✅ Connexion réussie via AuthContext!')
+    
+    // ⬇️ REDIRECTION SIMPLIFIÉE
+    console.log('➡️ Redirection vers le dashboard...')
+    navigate('/app/dashboard', { replace: true })
+    
+  } catch (error) {
+    console.error('❌ Erreur de connexion:', error)
+    setErrors({ 
+      general: error.message || 'Erreur de connexion. Veuillez réessayer.' 
+    })
+  } finally {
+    setIsLoading(false)
   }
-
+}
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
