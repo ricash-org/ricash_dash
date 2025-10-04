@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react'
+
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   User, Mail, Phone, MapPin, Calendar, Shield, Edit, Save, X, 
@@ -23,18 +24,26 @@ const RICASH_COLORS = {
 export default function ProfilePage() {
   const navigate = useNavigate()
   const { user: authUser, updateUser } = useContext(AuthContext)
+  
+  // Référence pour l'input file
+  const fileInputRef = useRef(null)
+  
+  // États existants
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [profileImage, setProfileImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [uploadStatus, setUploadStatus] = useState('initial')
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
 
-    const [user, setUser] = useState(() => {
-    // Structure par défaut sécurisée
+  const [user, setUser] = useState(() => {
     return authUser ? {
       ...authUser,
       preferences: authUser.preferences || {
@@ -64,6 +73,74 @@ export default function ProfilePage() {
     adresse: { ...(user?.adresse || {}) }
   });
 
+  const [message, setMessage] = useState({ type: '', text: '' })
+
+  // Fonction pour sauvegarder l'image dans le localStorage
+  const saveImageToLocalStorage = (imageData) => {
+    try {
+      localStorage.setItem(`profileImage_${user?.id}`, imageData)
+      return true
+    } catch (error) {
+      console.error('Erreur sauvegarde locale:', error)
+      return false
+    }
+  }
+
+  // Fonction pour récupérer l'image du localStorage
+  const getImageFromLocalStorage = () => {
+    try {
+      return localStorage.getItem(`profileImage_${user?.id}`)
+    } catch (error) {
+      console.error('Erreur lecture locale:', error)
+      return null
+    }
+  }
+
+  // Fonction pour gérer la sélection d'image
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validation
+      if (!file.type.startsWith('image/')) {
+        setMessage({ type: 'error', text: 'Veuillez sélectionner une image valide' })
+        return
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'L\'image ne doit pas dépasser 5MB' })
+        return
+      }
+      
+      setProfileImage(file)
+      
+      // Créer preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target.result)
+        
+        // Sauvegarder automatiquement dans le localStorage
+        try {
+          localStorage.setItem(`profileImage_${user?.id}`, e.target.result)
+          setMessage({ type: 'success', text: 'Photo de profil mise à jour!' })
+          
+          // Mettre à jour l'affichage immédiatement
+          const updatedUser = { ...user, profileImageUrl: e.target.result }
+          setUser(updatedUser)
+          updateUser(updatedUser)
+          
+          setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+        } catch (error) {
+          setMessage({ type: 'error', text: 'Erreur lors de la sauvegarde' })
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
+  }
+
   // Protection contre les accès à des propriétés undefined
   const getNotifications = () => {
     return user?.preferences?.notifications || {
@@ -71,8 +148,7 @@ export default function ProfilePage() {
       sms: false,
       push: true
     };
-  };
-  const [message, setMessage] = useState({ type: '', text: '' })
+  }
 
   // Charger les données du profil au montage du composant
   useEffect(() => {
@@ -86,6 +162,14 @@ export default function ProfilePage() {
         }
 
         const profileData = await profileService.getProfile(token)
+        
+        // Vérifier s'il y a une image sauvegardée localement
+        const localImage = getImageFromLocalStorage()
+        if (localImage) {
+          profileData.profileImageUrl = localImage
+          profileData.hasLocalImage = true
+        }
+
         setUser(profileData)
         setFormData({
           nom: profileData.nom || '',
@@ -239,84 +323,6 @@ export default function ProfilePage() {
     )
   }
 
-  // Dans ton composant ProfilePage, ajoute ces fonctions :
-
-// Fonction pour sauvegarder l'image dans le localStorage
-const saveImageToLocalStorage = (imageData) => {
-  try {
-    localStorage.setItem(`profileImage_${user.id}`, imageData)
-    return true
-  } catch (error) {
-    console.error('Erreur sauvegarde locale:', error)
-    return false
-  }
-}
-
-// Fonction pour récupérer l'image du localStorage
-const getImageFromLocalStorage = () => {
-  try {
-    return localStorage.getItem(`profileImage_${user.id}`)
-  } catch (error) {
-    console.error('Erreur lecture locale:', error)
-    return null
-  }
-}
-
-// Fonction modifiée pour l'upload
-const handleImageUpload = async () => {
-  if (!profileImage) return
-  
-  try {
-    setUploadStatus('uploading')
-    
-    // Solution 1: Sauvegarde locale (sans backend)
-    if (imagePreview) {
-      const success = saveImageToLocalStorage(imagePreview)
-      if (success) {
-        // Mettre à jour l'état utilisateur avec l'image
-        const updatedUser = {
-          ...user,
-          profileImageUrl: imagePreview,
-          hasLocalImage: true // Flag pour identifier les images locales
-        }
-        
-        setUser(updatedUser)
-        updateUser(updatedUser) // Mettre à jour le contexte
-        setUploadStatus('success')
-        setMessage({ type: 'success', text: 'Photo de profil mise à jour avec succès' })
-      }
-    }
-    
-    // Solution 2: Avec backend (décommente si ton backend est prêt)
-    /*
-    const token = sessionStorage.getItem('token')
-    const formData = new FormData()
-    formData.append('profileImage', profileImage)
-    
-    const updatedUser = await profileService.uploadProfileImage(formData, token)
-    setUser(updatedUser)
-    setUploadStatus('success')
-    setMessage({ type: 'success', text: 'Photo de profil mise à jour avec succès' })
-    updateUser(updatedUser)
-    */
-    
-    // Réinitialiser
-    setTimeout(() => {
-      setUploadStatus('initial')
-      setProfileImage(null)
-      setImagePreview(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    }, 2000)
-    
-  } catch (error) {
-    console.error('Erreur lors de l\'upload:', error)
-    setUploadStatus('fail')
-    setMessage({ type: 'error', text: 'Erreur lors de la mise à jour de la photo' })
-  }
-}
-
   return (
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
       {/* Message de statut */}
@@ -376,7 +382,6 @@ const handleImageUpload = async () => {
         </div>
       </div>
 
-      {/* Le reste de ton JSX existant reste inchangé mais utilise maintenant les données dynamiques */}
       <RicashTabs defaultValue="personal" className="w-full">
         <RicashTabsList className="grid w-full grid-cols-3 bg-white rounded-2xl shadow-lg border border-[#376470]/10">
           <RicashTabsTrigger value="personal" className="flex items-center space-x-2">
@@ -393,20 +398,42 @@ const handleImageUpload = async () => {
           </RicashTabsTrigger>
         </RicashTabsList>
 
-        {/* Onglet Informations personnelles - Maintenant dynamique */}
+        {/* Onglet Informations personnelles */}
         <RicashTabsContent value="personal" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Photo de profil */}
             <RicashCard className="lg:col-span-1">
               <div className="p-6 text-center">
                 <div className="relative inline-block mb-4">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#2B8286] to-[#B19068] flex items-center justify-center text-white text-4xl font-bold mx-auto">
-                    {user.prenom?.charAt(0) || ''}{user.nom?.charAt(0) || ''}
-                  </div>
+                  {imagePreview || user?.profileImageUrl ? (
+                    <img 
+                      src={imagePreview || user.profileImageUrl} 
+                      alt="Profile" 
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#2B8286] to-[#B19068] flex items-center justify-center text-white text-4xl font-bold mx-auto border-4 border-white shadow-lg">
+                      {user.prenom?.charAt(0) || ''}{user.nom?.charAt(0) || ''}
+                    </div>
+                  )}
+                  
                   {isEditing && (
-                    <button className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors">
-                      <Camera className="h-4 w-4" />
-                    </button>
+                    <>
+                      <button 
+                        onClick={handleImageClick}
+                        className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors shadow-lg"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </button>
+                      
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageSelect}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                    </>
                   )}
                 </div>
                 <h3 className="text-xl font-bold text-[#29475B] mb-1">
