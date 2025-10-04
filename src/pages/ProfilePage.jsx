@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   User, Mail, Phone, MapPin, Calendar, Shield, Edit, Save, X, 
-  Camera, Key, Bell, Globe, Lock, Eye, EyeOff
+  Camera, Key, Bell, Globe, Lock, Eye, EyeOff, Trash2
 } from 'lucide-react'
 import { RicashCard } from '@/components/ui/ricash-card'
 import { RicashButton } from '@/components/ui/ricash-button'
@@ -78,7 +78,11 @@ export default function ProfilePage() {
   // Fonction pour sauvegarder l'image dans le localStorage
   const saveImageToLocalStorage = (imageData) => {
     try {
-      localStorage.setItem(`profileImage_${user?.id}`, imageData)
+      if (imageData) {
+        localStorage.setItem(`profileImage_${user?.id}`, imageData)
+      } else {
+        localStorage.removeItem(`profileImage_${user?.id}`)
+      }
       return true
     } catch (error) {
       console.error('Erreur sauvegarde locale:', error)
@@ -93,6 +97,39 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Erreur lecture locale:', error)
       return null
+    }
+  }
+
+  // Fonction pour supprimer la photo de profil
+  const handleDeleteImage = () => {
+    try {
+      // Supprimer du localStorage
+      localStorage.removeItem(`profileImage_${user?.id}`)
+      
+      // Réinitialiser les états
+      setImagePreview(null)
+      setProfileImage(null)
+      
+      // Mettre à jour l'utilisateur
+      const updatedUser = { 
+        ...user, 
+        profileImageUrl: null,
+        hasLocalImage: false 
+      }
+      setUser(updatedUser)
+      updateUser(updatedUser)
+      
+      // Réinitialiser l'input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      
+      setMessage({ type: 'success', text: 'Photo de profil supprimée' })
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      setMessage({ type: 'error', text: 'Erreur lors de la suppression de la photo' })
     }
   }
 
@@ -116,15 +153,20 @@ export default function ProfilePage() {
       // Créer preview
       const reader = new FileReader()
       reader.onload = (e) => {
-        setImagePreview(e.target.result)
+        const imageData = e.target.result
+        setImagePreview(imageData)
         
         // Sauvegarder automatiquement dans le localStorage
         try {
-          localStorage.setItem(`profileImage_${user?.id}`, e.target.result)
+          saveImageToLocalStorage(imageData)
           setMessage({ type: 'success', text: 'Photo de profil mise à jour!' })
           
           // Mettre à jour l'affichage immédiatement
-          const updatedUser = { ...user, profileImageUrl: e.target.result }
+          const updatedUser = { 
+            ...user, 
+            profileImageUrl: imageData,
+            hasLocalImage: true 
+          }
           setUser(updatedUser)
           updateUser(updatedUser)
           
@@ -148,6 +190,11 @@ export default function ProfilePage() {
       sms: false,
       push: true
     };
+  }
+
+  // Vérifier si l'utilisateur a une photo personnalisée
+  const hasCustomImage = () => {
+    return !!(imagePreview || user?.profileImageUrl)
   }
 
   // Charger les données du profil au montage du composant
@@ -405,7 +452,7 @@ export default function ProfilePage() {
             <RicashCard className="lg:col-span-1">
               <div className="p-6 text-center">
                 <div className="relative inline-block mb-4">
-                  {imagePreview || user?.profileImageUrl ? (
+                  {hasCustomImage() ? (
                     <img 
                       src={imagePreview || user.profileImageUrl} 
                       alt="Profile" 
@@ -419,12 +466,23 @@ export default function ProfilePage() {
                   
                   {isEditing && (
                     <>
+                      {/* Bouton pour changer la photo */}
                       <button 
                         onClick={handleImageClick}
                         className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors shadow-lg"
                       >
                         <Camera className="h-4 w-4" />
                       </button>
+                      
+                      {/* Bouton pour supprimer la photo (seulement si une image existe) */}
+                      {hasCustomImage() && (
+                        <button 
+                          onClick={handleDeleteImage}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                       
                       <input
                         type="file"
@@ -436,11 +494,28 @@ export default function ProfilePage() {
                     </>
                   )}
                 </div>
+                
                 <h3 className="text-xl font-bold text-[#29475B] mb-1">
                   {user.prenom} {user.nom}
                 </h3>
                 <p className="text-[#376470] mb-4">{user.role}</p>
-                <div className="space-y-2 text-sm text-[#376470]">
+                
+                {/* Bouton pour réinitialiser vers l'avatar (visible même sans édition) */}
+                {hasCustomImage() && (
+                  <div className="mt-4">
+                    <RicashButton
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDeleteImage}
+                      className="w-full"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Utiliser l'avatar par défaut
+                    </RicashButton>
+                  </div>
+                )}
+                
+                <div className="space-y-2 text-sm text-[#376470] mt-4">
                   <p>Email: {user.email}</p>
                   {user.dateCreation && (
                     <p>Membre depuis {formatDate(user.dateCreation)}</p>
