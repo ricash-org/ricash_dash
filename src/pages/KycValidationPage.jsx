@@ -103,8 +103,7 @@ const getStatusBadge = (status) => {
       return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Validé</Badge>
     case 'en_cours':
       return <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>
-    case 'rejete':
-      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><Ban className="h-3 w-3" />Rejeté</Badge>
+    // ⚠️ SUPPRIMER LE DOUBLON 'rejete' ICI
     default:
       return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
   }
@@ -124,8 +123,7 @@ const getStatusIcon = (status) => {
       return <UserCheck className="h-5 w-5 text-green-500" />
     case 'en_cours':
       return <Clock className="h-5 w-5 text-blue-500" />
-    case 'rejete':
-      return <Ban className="h-5 w-5 text-red-500" />
+    // ⚠️ SUPPRIMER LE DOUBLON 'rejete' ICI
     default:
       return <Clock className="h-5 w-5 text-gray-500" />
   }

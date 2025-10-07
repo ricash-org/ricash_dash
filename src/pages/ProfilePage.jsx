@@ -11,6 +11,7 @@ import { RicashInput } from '@/components/ui/ricash-input'
 import { RicashTabs, RicashTabsContent, RicashTabsList, RicashTabsTrigger } from '@/components/ui/ricash-navigation'
 import { AuthContext } from '@/hooks/useAuth'
 import profileService from '@/services/profilService'
+import avatarService from '@/services/AvatarService';
 
 // Palette de couleurs Ricash
 const RICASH_COLORS = {
@@ -33,10 +34,8 @@ export default function ProfilePage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [profileImage, setProfileImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [uploadStatus, setUploadStatus] = useState('initial')
-
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState(null) 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -75,109 +74,123 @@ export default function ProfilePage() {
 
   const [message, setMessage] = useState({ type: '', text: '' })
 
-  // Fonction pour sauvegarder l'image dans le localStorage
-  const saveImageToLocalStorage = (imageData) => {
-    try {
-      if (imageData) {
-        localStorage.setItem(`profileImage_${user?.id}`, imageData)
-      } else {
-        localStorage.removeItem(`profileImage_${user?.id}`)
-      }
-      return true
-    } catch (error) {
-      console.error('Erreur sauvegarde locale:', error)
-      return false
-    }
-  }
-
-  // Fonction pour récupérer l'image du localStorage
-  const getImageFromLocalStorage = () => {
-    try {
-      return localStorage.getItem(`profileImage_${user?.id}`)
-    } catch (error) {
-      console.error('Erreur lecture locale:', error)
-      return null
-    }
-  }
-
   // Fonction pour supprimer la photo de profil
-  const handleDeleteImage = () => {
-    try {
-      // Supprimer du localStorage
-      localStorage.removeItem(`profileImage_${user?.id}`)
-      
-      // Réinitialiser les états
-      setImagePreview(null)
-      setProfileImage(null)
-      
-      // Mettre à jour l'utilisateur
-      const updatedUser = { 
-        ...user, 
-        profileImageUrl: null,
-        hasLocalImage: false 
-      }
-      setUser(updatedUser)
-      updateUser(updatedUser)
-      
-      // Réinitialiser l'input file
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-      
-      setMessage({ type: 'success', text: 'Photo de profil supprimée' })
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
-      
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error)
-      setMessage({ type: 'error', text: 'Erreur lors de la suppression de la photo' })
-    }
+const handleImageSelect = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Validation du fichier
+  const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (!validTypes.includes(file.type)) {
+    setMessage({ type: 'error', text: 'Format de fichier non supporté. Utilisez JPEG, PNG ou GIF.' });
+    return;
   }
 
-  // Fonction pour gérer la sélection d'image
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      // Validation
-      if (!file.type.startsWith('image/')) {
-        setMessage({ type: 'error', text: 'Veuillez sélectionner une image valide' })
-        return
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'error', text: 'L\'image ne doit pas dépasser 5MB' })
-        return
-      }
-      
-      setProfileImage(file)
-      
-      // Créer preview
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const imageData = e.target.result
-        setImagePreview(imageData)
-        
-        // Sauvegarder automatiquement dans le localStorage
-        try {
-          saveImageToLocalStorage(imageData)
-          setMessage({ type: 'success', text: 'Photo de profil mise à jour!' })
-          
-          // Mettre à jour l'affichage immédiatement
-          const updatedUser = { 
-            ...user, 
-            profileImageUrl: imageData,
-            hasLocalImage: true 
-          }
-          setUser(updatedUser)
-          updateUser(updatedUser)
-          
-          setTimeout(() => setMessage({ type: '', text: '' }), 3000)
-        } catch (error) {
-          setMessage({ type: 'error', text: 'Erreur lors de la sauvegarde' })
-        }
-      }
-      reader.readAsDataURL(file)
+  if (file.size > 10 * 1024 * 1024) { // 10MB max
+    setMessage({ type: 'error', text: 'Fichier trop volumineux (max 10MB)' });
+    return;
+  }
+
+  setUploading(true);
+  
+  try {
+    // Récupérer le token depuis sessionStorage
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
+    }
+
+    // Preview locale
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload selon le rôle avec le token en paramètre
+    let avatarUrl;
+    if (user.role === 'AGENT') {
+      avatarUrl = await avatarService.uploadAgentAvatar(user.id, file, token);
+    } else if (user.role === 'ADMIN') {
+      avatarUrl = await avatarService.uploadAdminAvatar(user.id, file, token);
+    } else {
+      throw new Error('Rôle utilisateur non reconnu');
+    }
+
+    // Mise à jour de l'utilisateur
+    const updatedUser = { 
+      ...user, 
+      avatarUrl: avatarUrl
+    };
+    setUser(updatedUser);
+    updateUser(updatedUser);
+
+    setMessage({ type: 'success', text: 'Photo de profil mise à jour!' });
+    
+  } catch (error) {
+    console.error('Erreur upload détaillée:', error);
+    setMessage({ 
+      type: 'error', 
+      text: error.response?.data?.message || error.message || 'Erreur lors de l\'upload de l\'image' 
+    });
+  } finally {
+    setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   }
+};
+// Fonction handleDeleteImage - VERSION CORRIGÉE :
+const handleDeleteImage = async () => {
+  try {
+    setUploading(true);
+    
+    // Récupérer le token depuis sessionStorage
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
+    }
+    
+    // Supprimer sur le backend avec le token
+    if (user.role === 'AGENT') {
+      await avatarService.deleteAgentAvatar(user.id, token);
+    } else if (user.role === 'ADMIN') {
+      await avatarService.deleteAdminAvatar(user.id, token);
+    }
+
+    // Réinitialiser les états locaux
+    setImagePreview(null);
+    
+    // Mettre à jour l'utilisateur
+    const updatedUser = { 
+      ...user, 
+      avatarUrl: null
+    };
+    setUser(updatedUser);
+    updateUser(updatedUser);
+
+    // Réinitialiser l'input file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    setMessage({ type: 'success', text: 'Photo de profil supprimée' });
+    
+  } catch (error) {
+    console.error('Erreur suppression:', error);
+    setMessage({ 
+      type: 'error', 
+      text: error.response?.data?.message || error.message || 'Erreur lors de la suppression de la photo' 
+    });
+  } finally {
+    setUploading(false);
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  }
+};
+// Mettez à jour la fonction hasCustomImage :
+const hasCustomImage = () => {
+  return !!(imagePreview || user?.avatarUrl);
+}
 
   const handleImageClick = () => {
     fileInputRef.current?.click()
@@ -192,50 +205,44 @@ export default function ProfilePage() {
     };
   }
 
-  // Vérifier si l'utilisateur a une photo personnalisée
-  const hasCustomImage = () => {
-    return !!(imagePreview || user?.profileImageUrl)
+  // Charger les données du profil au montage du composant
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      setLoading(true)
+      const token = sessionStorage.getItem('token')
+      if (!token) {
+        navigate('/login')
+        return
+      }
+
+      const profileData = await profileService.getProfile(token)
+      
+      // CORRECTION : Mettre à jour imagePreview avec l'avatarUrl du backend
+      if (profileData.avatarUrl) {
+        setImagePreview(profileData.avatarUrl)
+      }
+
+      setUser(profileData)
+      setFormData({
+        nom: profileData.nom || '',
+        prenom: profileData.prenom || '',
+        email: profileData.email || '',
+        telephone: profileData.telephone || '',
+        dateNaissance: profileData.dateNaissance || '',
+        adresse: profileData.adresse || { rue: '', ville: '', codePostal: '', pays: '' }
+      })
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error)
+      setMessage({ type: 'error', text: 'Erreur lors du chargement du profil' })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Charger les données du profil au montage du composant
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true)
-        const token = sessionStorage.getItem('token')
-        if (!token) {
-          navigate('/login')
-          return
-        }
+  fetchProfile()
+}, [navigate])
 
-        const profileData = await profileService.getProfile(token)
-        
-        // Vérifier s'il y a une image sauvegardée localement
-        const localImage = getImageFromLocalStorage()
-        if (localImage) {
-          profileData.profileImageUrl = localImage
-          profileData.hasLocalImage = true
-        }
-
-        setUser(profileData)
-        setFormData({
-          nom: profileData.nom || '',
-          prenom: profileData.prenom || '',
-          email: profileData.email || '',
-          telephone: profileData.telephone || '',
-          dateNaissance: profileData.dateNaissance || '',
-          adresse: profileData.adresse || { rue: '', ville: '', codePostal: '', pays: '' }
-        })
-      } catch (error) {
-        console.error('Erreur lors du chargement du profil:', error)
-        setMessage({ type: 'error', text: 'Erreur lors du chargement du profil' })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProfile()
-  }, [navigate])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -454,7 +461,7 @@ export default function ProfilePage() {
                 <div className="relative inline-block mb-4">
                   {hasCustomImage() ? (
                     <img 
-                      src={imagePreview || user.profileImageUrl} 
+                      src={imagePreview || user.avatarUrl} 
                       alt="Profile" 
                       className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                     />
@@ -722,7 +729,7 @@ export default function ProfilePage() {
           </RicashCard>
         </RicashTabsContent>
 
-        {/* Onglet Sécurité */}
+        Onglet Sécurité
         <RicashTabsContent value="security" className="space-y-6">
           <RicashCard>
             <div className="p-6">
