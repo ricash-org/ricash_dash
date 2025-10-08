@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
@@ -26,177 +25,46 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const { user: authUser, updateUser } = useContext(AuthContext)
   
-  // Référence pour l'input file
   const fileInputRef = useRef(null)
   
-  // États existants
+  // États simplifiés et corrigés
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [imagePreview, setImagePreview] = useState(null) 
+  const [message, setMessage] = useState({ type: '', text: '' })
+
+  // État utilisateur unifié - CORRECTION : initialisation à null
+  const [user, setUser] = useState(null);
+
+  // Données de formulaire
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenom: '',
+    email: '',
+    telephone: '',
+    dateNaissance: '',
+    adresse: {
+      rue: '',
+      ville: '',
+      codePostal: '',
+      pays: ''
+    }
+  });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
 
-  const [user, setUser] = useState(() => {
-    return authUser ? {
-      ...authUser,
-      preferences: authUser.preferences || {
-        langue: 'fr',
-        timezone: 'Europe/Paris',
-        notifications: {
-          email: true,
-          sms: false,
-          push: true
-        }
-      },
-      adresse: authUser.adresse || {
-        rue: '',
-        ville: '',
-        codePostal: '',
-        pays: ''
-      }
-    } : null;
-  });
-
-  const [formData, setFormData] = useState({
-    nom: user?.nom || '',
-    prenom: user?.prenom || '',
-    email: user?.email || '',
-    telephone: user?.telephone || '',
-    dateNaissance: user?.dateNaissance || '',
-    adresse: { ...(user?.adresse || {}) }
-  });
-
-  const [message, setMessage] = useState({ type: '', text: '' })
-
-  // Fonction pour supprimer la photo de profil
-const handleImageSelect = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  // Validation du fichier
-  const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-  if (!validTypes.includes(file.type)) {
-    setMessage({ type: 'error', text: 'Format de fichier non supporté. Utilisez JPEG, PNG ou GIF.' });
-    return;
+  // CORRECTION : Fonction unique pour vérifier si une image personnalisée existe
+  const hasCustomImage = () => {
+    return !!user?.avatarUrl;
   }
 
-  if (file.size > 10 * 1024 * 1024) { // 10MB max
-    setMessage({ type: 'error', text: 'Fichier trop volumineux (max 10MB)' });
-    return;
-  }
-
-  setUploading(true);
-  
-  try {
-    // Récupérer le token depuis sessionStorage
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
-    }
-
-    // Preview locale
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target.result);
-    };
-    reader.readAsDataURL(file);
-
-    // Upload selon le rôle avec le token en paramètre
-    let avatarUrl;
-    if (user.role === 'AGENT') {
-      avatarUrl = await avatarService.uploadAgentAvatar(user.id, file, token);
-    } else if (user.role === 'ADMIN') {
-      avatarUrl = await avatarService.uploadAdminAvatar(user.id, file, token);
-    } else {
-      throw new Error('Rôle utilisateur non reconnu');
-    }
-
-    // Mise à jour de l'utilisateur
-    const updatedUser = { 
-      ...user, 
-      avatarUrl: avatarUrl
-    };
-    setUser(updatedUser);
-    updateUser(updatedUser);
-
-    setMessage({ type: 'success', text: 'Photo de profil mise à jour!' });
-    
-  } catch (error) {
-    console.error('Erreur upload détaillée:', error);
-    setMessage({ 
-      type: 'error', 
-      text: error.response?.data?.message || error.message || 'Erreur lors de l\'upload de l\'image' 
-    });
-  } finally {
-    setUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-};
-// Fonction handleDeleteImage - VERSION CORRIGÉE :
-const handleDeleteImage = async () => {
-  try {
-    setUploading(true);
-    
-    // Récupérer le token depuis sessionStorage
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
-    }
-    
-    // Supprimer sur le backend avec le token
-    if (user.role === 'AGENT') {
-      await avatarService.deleteAgentAvatar(user.id, token);
-    } else if (user.role === 'ADMIN') {
-      await avatarService.deleteAdminAvatar(user.id, token);
-    }
-
-    // Réinitialiser les états locaux
-    setImagePreview(null);
-    
-    // Mettre à jour l'utilisateur
-    const updatedUser = { 
-      ...user, 
-      avatarUrl: null
-    };
-    setUser(updatedUser);
-    updateUser(updatedUser);
-
-    // Réinitialiser l'input file
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    
-    setMessage({ type: 'success', text: 'Photo de profil supprimée' });
-    
-  } catch (error) {
-    console.error('Erreur suppression:', error);
-    setMessage({ 
-      type: 'error', 
-      text: error.response?.data?.message || error.message || 'Erreur lors de la suppression de la photo' 
-    });
-  } finally {
-    setUploading(false);
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  }
-};
-// Mettez à jour la fonction hasCustomImage :
-const hasCustomImage = () => {
-  return !!(imagePreview || user?.avatarUrl);
-}
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  // Protection contre les accès à des propriétés undefined
+  // CORRECTION : Fonction getNotifications manquante
   const getNotifications = () => {
     return user?.preferences?.notifications || {
       email: true,
@@ -205,44 +73,139 @@ const hasCustomImage = () => {
     };
   }
 
-  // Charger les données du profil au montage du composant
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      setLoading(true)
-      const token = sessionStorage.getItem('token')
-      if (!token) {
-        navigate('/login')
-        return
-      }
+  // CORRECTION : Gestion simplifiée de la sélection d'image
+  const handleImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-      const profileData = await profileService.getProfile(token)
-      
-      // CORRECTION : Mettre à jour imagePreview avec l'avatarUrl du backend
-      if (profileData.avatarUrl) {
-        setImagePreview(profileData.avatarUrl)
-      }
-
-      setUser(profileData)
-      setFormData({
-        nom: profileData.nom || '',
-        prenom: profileData.prenom || '',
-        email: profileData.email || '',
-        telephone: profileData.telephone || '',
-        dateNaissance: profileData.dateNaissance || '',
-        adresse: profileData.adresse || { rue: '', ville: '', codePostal: '', pays: '' }
-      })
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error)
-      setMessage({ type: 'error', text: 'Erreur lors du chargement du profil' })
-    } finally {
-      setLoading(false)
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setMessage({ type: 'error', text: 'Format de fichier non supporté. Utilisez JPEG, PNG ou GIF.' });
+      return;
     }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Fichier trop volumineux (max 10MB)' });
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
+      }
+
+      let avatarUrl;
+      if (user.role === 'AGENT') {
+        avatarUrl = await avatarService.uploadAgentAvatar(user.id, file, token);
+      } else if (user.role === 'ADMIN') {
+        avatarUrl = await avatarService.uploadAdminAvatar(user.id, file, token);
+      } else {
+        throw new Error('Rôle utilisateur non reconnu');
+      }
+
+      // CORRECTION : Mise à jour directe de l'avatarUrl
+      const updatedUser = { 
+        ...user, 
+        avatarUrl: avatarUrl
+      };
+      setUser(updatedUser);
+      updateUser(updatedUser);
+
+      setMessage({ type: 'success', text: 'Photo de profil mise à jour!' });
+      
+    } catch (error) {
+      console.error('Erreur upload détaillée:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || error.message || 'Erreur lors de l\'upload de l\'image' 
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // CORRECTION : Fonction de suppression d'image simplifiée
+  const handleDeleteImage = async () => {
+    try {
+      setUploading(true);
+      
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token d\'authentification non trouvé. Veuillez vous reconnecter.');
+      }
+      
+      if (user.role === 'AGENT') {
+        await avatarService.deleteAgentAvatar(user.id, token);
+      } else if (user.role === 'ADMIN') {
+        await avatarService.deleteAdminAvatar(user.id, token);
+      }
+
+      // CORRECTION : Suppression directe de l'avatarUrl
+      const updatedUser = { 
+        ...user, 
+        avatarUrl: null
+      };
+      setUser(updatedUser);
+      updateUser(updatedUser);
+      
+      setMessage({ type: 'success', text: 'Photo de profil supprimée' });
+      
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || error.message || 'Erreur lors de la suppression de la photo' 
+      });
+    } finally {
+      setUploading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
   }
 
-  fetchProfile()
-}, [navigate])
+  // CORRECTION : Chargement du profil optimisé
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true)
+        const token = sessionStorage.getItem('token')
+        if (!token) {
+          navigate('/login')
+          return
+        }
 
+        const profileData = await profileService.getProfile(token)
+        console.log("Profil récupéré :", profileData);
+        
+        // CORRECTION : Initialisation unique de l'état user
+        setUser(profileData)
+        setFormData({
+          nom: profileData.nom || '',
+          prenom: profileData.prenom || '',
+          email: profileData.email || '',
+          telephone: profileData.telephone || '',
+          dateNaissance: profileData.dateNaissance || '',
+          adresse: profileData.adresse || { rue: '', ville: '', codePostal: '', pays: '' }
+        })
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error)
+        setMessage({ type: 'error', text: 'Erreur lors du chargement du profil' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [navigate])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -250,14 +213,16 @@ useEffect(() => {
 
   const handleCancel = () => {
     setIsEditing(false)
-    setFormData({
-      nom: user.nom,
-      prenom: user.prenom,
-      email: user.email,
-      telephone: user.telephone,
-      dateNaissance: user.dateNaissance,
-      adresse: { ...user.adresse }
-    })
+    if (user) {
+      setFormData({
+        nom: user.nom,
+        prenom: user.prenom,
+        email: user.email,
+        telephone: user.telephone,
+        dateNaissance: user.dateNaissance,
+        adresse: { ...user.adresse }
+      })
+    }
     setMessage({ type: '', text: '' })
   }
 
@@ -266,7 +231,6 @@ useEffect(() => {
       setSaving(true)
       const token = sessionStorage.getItem('token')
       
-      // Préparer les données pour l'envoi
       const updates = {
         nom: formData.nom,
         prenom: formData.prenom,
@@ -276,14 +240,11 @@ useEffect(() => {
 
       const updatedUser = await profileService.updateProfile(updates, token)
       setUser(updatedUser)
-      
-      // Mettre à jour le contexte d'authentification
       updateUser(updatedUser)
       
       setIsEditing(false)
       setMessage({ type: 'success', text: 'Profil mis à jour avec succès' })
       
-      // Effacer le message après 3 secondes
       setTimeout(() => setMessage({ type: '', text: '' }), 3000)
       
     } catch (error) {
@@ -452,18 +413,23 @@ useEffect(() => {
           </RicashTabsTrigger>
         </RicashTabsList>
 
-        {/* Onglet Informations personnelles */}
+        {/* Onglet Informations personnelles - CORRIGÉ */}
         <RicashTabsContent value="personal" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Photo de profil */}
+            {/* Photo de profil - CORRECTION : utilisation de user.avatarUrl uniquement */}
             <RicashCard className="lg:col-span-1">
               <div className="p-6 text-center">
                 <div className="relative inline-block mb-4">
                   {hasCustomImage() ? (
                     <img 
-                      src={imagePreview || user.avatarUrl} 
+                      src={user.avatarUrl} 
                       alt="Profile" 
                       className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                      onError={(e) => {
+                        // Fallback si l'image ne charge pas
+                        console.error('Erreur de chargement de l\'image:', user.avatarUrl);
+                        e.target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#2B8286] to-[#B19068] flex items-center justify-center text-white text-4xl font-bold mx-auto border-4 border-white shadow-lg">
@@ -473,19 +439,19 @@ useEffect(() => {
                   
                   {isEditing && (
                     <>
-                      {/* Bouton pour changer la photo */}
                       <button 
                         onClick={handleImageClick}
-                        className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors shadow-lg"
+                        disabled={uploading}
+                        className="absolute bottom-2 right-2 w-8 h-8 bg-[#2B8286] text-white rounded-full flex items-center justify-center hover:bg-[#2B8286]/90 transition-colors shadow-lg disabled:opacity-50"
                       >
                         <Camera className="h-4 w-4" />
                       </button>
                       
-                      {/* Bouton pour supprimer la photo (seulement si une image existe) */}
                       {hasCustomImage() && (
                         <button 
                           onClick={handleDeleteImage}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                          disabled={uploading}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -497,6 +463,7 @@ useEffect(() => {
                         onChange={handleImageSelect}
                         accept="image/*"
                         className="hidden"
+                        disabled={uploading}
                       />
                     </>
                   )}
@@ -507,18 +474,24 @@ useEffect(() => {
                 </h3>
                 <p className="text-[#376470] mb-4">{user.role}</p>
                 
-                {/* Bouton pour réinitialiser vers l'avatar (visible même sans édition) */}
                 {hasCustomImage() && (
                   <div className="mt-4">
                     <RicashButton
                       variant="outline"
                       size="sm"
                       onClick={handleDeleteImage}
+                      disabled={uploading}
                       className="w-full"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Utiliser l'avatar par défaut
+                      {uploading ? 'Suppression...' : 'Utiliser l\'avatar par défaut'}
                     </RicashButton>
+                  </div>
+                )}
+                
+                {uploading && (
+                  <div className="mt-2 text-sm text-[#376470]">
+                    Traitement en cours...
                   </div>
                 )}
                 
@@ -531,14 +504,13 @@ useEffect(() => {
               </div>
             </RicashCard>
 
-            {/* Informations détaillées - Formulaire dynamique */}
+            {/* Informations détaillées */}
             <RicashCard className="lg:col-span-2">
               <div className="p-6">
                 <h3 className="text-xl font-bold text-[#29475B] mb-6">
                   Informations personnelles
                 </h3>
                 <div className="grid gap-6 md:grid-cols-2">
-                  {/* Les champs de formulaire restent similaires mais utilisent formData */}
                   <div>
                     <label className="block text-sm font-medium text-[#29475B] mb-2">
                       Prénom
@@ -611,54 +583,13 @@ useEffect(() => {
                       </div>
                     )}
                   </div>
-
-                  {/* <div>
-                    <label className="block text-sm font-medium text-[#29475B] mb-2">
-                      Adresse
-                    </label>
-                    {isEditing ? (
-                      <div className="space-y-3">
-                        <RicashInput
-                          value={formData.adresse.rue}
-                          onChange={(e) => handleInputChange('adresse.rue', e.target.value)}
-                          placeholder="Rue et numéro"
-                        />
-                        <div className="grid grid-cols-2 gap-3">
-                          <RicashInput
-                            value={formData.adresse.codePostal}
-                            onChange={(e) => handleInputChange('adresse.codePostal', e.target.value)}
-                            placeholder="Code postal"
-                          />
-                          <RicashInput
-                            value={formData.adresse.ville}
-                            onChange={(e) => handleInputChange('adresse.ville', e.target.value)}
-                            placeholder="Ville"
-                          />
-                        </div>
-                        <RicashInput
-                          value={formData.adresse.pays}
-                          onChange={(e) => handleInputChange('adresse.pays', e.target.value)}
-                          placeholder="Pays"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-start p-3 bg-[#F4F2EE] rounded-lg">
-                        <MapPin className="h-4 w-4 text-[#376470] mr-3 mt-1" />
-                        <div className="text-[#29475B]">
-                          <div>{user.adresse.rue}</div>
-                          <div>{user.adresse.codePostal} {user.adresse.ville}</div>
-                          <div>{user.adresse.pays}</div>
-                        </div>
-                      </div>
-                    )}
-                  </div> */}
                 </div>
               </div>
             </RicashCard>
           </div>
         </RicashTabsContent>
 
-        {/* Onglet Sécurité - Maintenant fonctionnel */}
+        {/* CORRECTION : Un seul onglet Sécurité */}
         <RicashTabsContent value="security" className="space-y-6">
           <RicashCard>
             <div className="p-6">
@@ -677,6 +608,7 @@ useEffect(() => {
                       className="pr-10"
                       value={passwordData.currentPassword}
                       onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -701,6 +633,7 @@ useEffect(() => {
                     placeholder="Entrez votre nouveau mot de passe"
                     value={passwordData.newPassword}
                     onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -713,6 +646,7 @@ useEffect(() => {
                     placeholder="Confirmez votre nouveau mot de passe"
                     value={passwordData.confirmPassword}
                     onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -723,67 +657,6 @@ useEffect(() => {
                 >
                   <Key className="mr-2 h-4 w-4" />
                   {saving ? 'Changement...' : 'Changer le mot de passe'}
-                </RicashButton>
-              </div>
-            </div>
-          </RicashCard>
-        </RicashTabsContent>
-
-        Onglet Sécurité
-        <RicashTabsContent value="security" className="space-y-6">
-          <RicashCard>
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-[#29475B] mb-6">
-                Sécurité du compte
-              </h3>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-[#29475B] mb-2">
-                    Mot de passe actuel
-                  </label>
-                  <div className="relative">
-                    <RicashInput
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Entrez votre mot de passe actuel"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-[#376470]" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-[#376470]" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#29475B] mb-2">
-                    Nouveau mot de passe
-                  </label>
-                  <RicashInput
-                    type="password"
-                    placeholder="Entrez votre nouveau mot de passe"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#29475B] mb-2">
-                    Confirmer le nouveau mot de passe
-                  </label>
-                  <RicashInput
-                    type="password"
-                    placeholder="Confirmez votre nouveau mot de passe"
-                  />
-                </div>
-
-                <RicashButton variant="accent">
-                  <Key className="mr-2 h-4 w-4" />
-                  Changer le mot de passe
                 </RicashButton>
               </div>
             </div>
@@ -825,6 +698,7 @@ useEffect(() => {
                     type="checkbox"
                     checked={getNotifications().email}
                     className="w-4 h-4 text-[#2B8286] rounded"
+                    readOnly
                   />
                 </div>
 
@@ -837,6 +711,7 @@ useEffect(() => {
                     type="checkbox"
                     checked={getNotifications().sms} 
                     className="w-4 h-4 text-[#2B8286] rounded"
+                    readOnly
                   />
                 </div>
 
@@ -849,6 +724,7 @@ useEffect(() => {
                     type="checkbox"
                     checked={getNotifications().push}
                     className="w-4 h-4 text-[#2B8286] rounded"
+                    readOnly
                   />
                 </div>
               </div>
@@ -865,7 +741,7 @@ useEffect(() => {
                   <label className="block text-sm font-medium text-[#29475B] mb-2">
                     Langue
                   </label>
-                  <select className="w-full p-3 border border-[#376470]/20 rounded-lg bg-white">
+                  <select className="w-full p-3 border border-[#376470]/20 rounded-lg bg-white" defaultValue="fr">
                     <option value="fr">Français</option>
                     <option value="en">English</option>
                     <option value="es">Español</option>
@@ -876,7 +752,7 @@ useEffect(() => {
                   <label className="block text-sm font-medium text-[#29475B] mb-2">
                     Fuseau horaire
                   </label>
-                  <select className="w-full p-3 border border-[#376470]/20 rounded-lg bg-white">
+                  <select className="w-full p-3 border border-[#376470]/20 rounded-lg bg-white" defaultValue="Europe/Paris">
                     <option value="Europe/Paris">Europe/Paris</option>
                     <option value="Europe/London">Europe/London</option>
                     <option value="America/New_York">America/New_York</option>

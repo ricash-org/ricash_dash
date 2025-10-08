@@ -395,25 +395,38 @@ export function AuthProvider({ children }) {
     }
   }, [logout, setupSessionTimeout])
 
-  const value = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    loginAttempts,
-    isLocked,
-    lockoutTime,
-    
-    // Actions
-    login,
-    logout,
-    updateUser,
-    refreshSession,
-    resetSessionTimeout,
+const value = {
+  user,
+  isLoading,
+  isAuthenticated: !!user,
+  loginAttempts,
+  isLocked,
+  lockoutTime,
+  
+  // Actions
+  login,
+  logout,
+  updateUser,
+  refreshSession,
+  resetSessionTimeout,
+  
+  // Utilities - Amélioration de la gestion des rôles
+  hasRole: (role) => {
+    if (!user) return false;
+    return user.role === role || user.roles?.includes(role);
+  },
+  hasAnyRole: (roles) => {
+    if (!user) return false;
+    return roles.includes(user.role) || user.roles?.some(r => roles.includes(r));
+  },
+  isAdmin: () => user?.role === 'ADMIN',
+  isAgent: () => user?.role === 'AGENT',
+  isUser: () => user?.role === 'USER'
     
     // Utilities
-    hasRole: (role) => user?.role === role || user?.roles?.includes(role),
-    hasPermission: (permission) => user?.permissions?.includes(permission),
-    getRemainingLockoutTime: () => isLocked && lockoutTime ? Math.max(0, lockoutTime - Date.now()) : 0
+    // hasRole: (role) => user?.role === role || user?.roles?.includes(role),
+    // hasPermission: (permission) => user?.permissions?.includes(permission),
+    // getRemainingLockoutTime: () => isLocked && lockoutTime ? Math.max(0, lockoutTime - Date.now()) : 0
   }
 
   return (
