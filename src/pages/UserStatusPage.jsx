@@ -1,452 +1,702 @@
-import React, { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+// src/pages/Users.js
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft,
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Shield,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertTriangle,
-  Copy,
-  Download,
-  MessageSquare,
-  FileText,
+  Users as UsersIcon, 
+  Search, 
+  Plus, 
   Eye,
-  RefreshCw,
   Edit,
+  Trash2,
   Ban,
-  UserCheck,
+  CheckCircle,
+  AlertTriangle,
+  Filter,
+  RefreshCw,
+  Download,
   Upload,
-  Send,
-  Save,
-  AlertCircle
-} from 'lucide-react'
-import { RicashButton } from '@/components/ui/ricash-button'
-import { RicashCard } from '@/components/ui/ricash-card'
-import { RicashInput } from '@/components/ui/ricash-input'
-import { RicashLabel } from '@/components/ui/ricash-label'
-import { RicashTextarea } from '@/components/ui/ricash-textarea'
-import { RicashSelect } from '@/components/ui/ricash-input'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { toast } from 'sonner'
+  Shield,
+  Activity,
+  TrendingUp,
+  UserCheck,
+  UserX,
+  Clock,
+  FileText,
+  MoreHorizontal,
+  LogOut,
+  Euro
+} from 'lucide-react';
 
-// Mock data pour les utilisateurs
-const mockUsers = {
-  USR001: {
-    id: 'USR001',
-    nom: 'Dupont',
-    prenom: 'Jean',
-    email: 'jean.dupont@email.com',
-    telephone: '+33 6 12 34 56 78',
-    pays: 'France',
-    ville: 'Paris',
-    adresse: '123 Rue de la Paix, Paris',
-    dateNaissance: '1990-05-15',
-    statut: 'actif',
-    kycStatus: 'valide',
-    typeCompte: 'Premium',
-    dateCreation: '2024-01-15T10:30:00Z',
-    dernierLogin: '2024-01-20T14:30:00Z',
-    solde: 1250.50,
-    transactions: 15,
-    historiqueStatuts: [
-      { date: '2024-01-15T10:30:00Z', statut: 'actif', raison: 'Création du compte', agent: 'Système' },
-      { date: '2024-01-18T09:15:00Z', statut: 'suspendu', raison: 'Vérification KYC', agent: 'Agent KYC001' },
-      { date: '2024-01-19T14:20:00Z', statut: 'actif', raison: 'KYC validé', agent: 'Agent KYC001' }
-    ]
-  },
-  USR002: {
-    id: 'USR002',
-    nom: 'Martin',
-    prenom: 'Marie',
-    email: 'marie.martin@email.com',
-    telephone: '+33 6 98 76 54 32',
-    pays: 'France',
-    ville: 'Lyon',
-    adresse: '456 Avenue des Champs, Lyon',
-    dateNaissance: '1985-08-22',
-    statut: 'suspendu',
-    kycStatus: 'en_cours',
-    typeCompte: 'Standard',
-    dateCreation: '2024-01-18T08:15:00Z',
-    dernierLogin: '2024-01-19T10:20:00Z',
-    solde: 750.00,
-    transactions: 8,
-    historiqueStatuts: [
-      { date: '2024-01-18T08:15:00Z', statut: 'en_attente', raison: 'Création du compte', agent: 'Système' },
-      { date: '2024-01-19T10:20:00Z', statut: 'suspendu', raison: 'Documents KYC manquants', agent: 'Agent KYC002' }
-    ]
-  }
-}
+// Import des composants Ricash
+import { RicashCard, RicashStatCard, RicashTableCard } from '@/components/ui/ricash-card';
+import { RicashButton, RicashIconButton } from '@/components/ui/ricash-button';
+import { RicashInput, RicashSelect } from '@/components/ui/ricash-input';
+import { RicashStatusBadge } from '@/components/ui/ricash-table';
+import { RicashTable, RicashTableHeader, RicashTableBody, RicashTableRow, RicashTableCell } from '@/components/ui/ricash-table';
+import { RicashDropdownMenu, RicashDropdownItem, RicashDropdownSeparator } from '@/components/ui/ricash-dropdown';
 
-const getStatusBadge = (status) => {
-  switch (status) {
-    case 'actif':
-      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Actif</Badge>
-    case 'suspendu':
-      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><Ban className="h-3 w-3" />Suspendu</Badge>
-    case 'en_attente':
-      return <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-3 w-3" />En attente</Badge>
-    case 'bloque':
-      return <Badge className="bg-gray-100 text-gray-800 flex items-center gap-1"><XCircle className="h-3 w-3" />Bloqué</Badge>
-    default:
-      return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
-  }
-}
+// Service API et hook pour les données dynamiques
+import userService from '@/services/userService';
+import { useAuth } from '@/hooks/useAuth';
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'actif':
-      return <CheckCircle className="h-5 w-5 text-green-500" />
-    case 'suspendu':
-      return <Ban className="h-5 w-5 text-red-500" />
-    case 'en_attente':
-      return <Clock className="h-5 w-5 text-yellow-500" />
-    case 'bloque':
-      return <XCircle className="h-5 w-5 text-gray-500" />
-    default:
-      return <Clock className="h-5 w-5 text-gray-500" />
-  }
-}
+// Palette de couleurs Ricash
+const RICASH_COLORS = {
+  bleuFonce: '#29475B',
+  dore: '#B19068',
+  turquoise: '#2B8286',
+  blancCasse: '#F4F2EE',
+  bleuVert: '#376470'
+};
 
-const formatDate = (dateString) => {
-  if (!dateString) return 'Non défini'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-export default function UserStatusPage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-  const [newStatus, setNewStatus] = useState('')
-  const [reason, setReason] = useState('')
-  const [duration, setDuration] = useState('')
-  const [comment, setComment] = useState('')
-  const [showConfirmation, setShowConfirmation] = useState(false)
+export default function Users() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
   
-  const user = mockUsers[id]
+  // State management avec données dynamiques
+  const [users, setUsers] = useState([]);
+  const [filters, setFilters] = useState(() => ({
+    search: '',
+    status: location.pathname === '/app/users/suspended' ? 'suspendu' : 'all',
+    kycStatus: location.pathname === '/app/users/kyc' ? 'en_cours' : 'all',
+    pays: 'all',
+    typeCompte: 'all',
+    page: 1,
+    limit: 20
+  }));
   
-  if (!user) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Chargement des données utilisateurs depuis le backend
+  const fetchUsers = useCallback(async () => {
+    if (!isAuthenticated) {
+      setError('Utilisateur non authentifié');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log('🔄 Début du chargement des utilisateurs depuis le backend...');
+      
+      // Récupérer tous les utilisateurs depuis l'API
+      const usersData = await userService.getAllUsers();
+      console.log('✅ Utilisateurs récupérés avec succès:', usersData);
+      
+      setUsers(usersData);
+    } catch (err) {
+      console.error('❌ Erreur lors du chargement:', err);
+      if (err.response?.status === 401) {
+        setError('Session expirée. Veuillez vous reconnecter.');
+        logout();
+      } else {
+        setError(err.response?.data?.message || 'Erreur lors du chargement des utilisateurs');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, logout]);
+
+  // Chargement initial
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUsers();
+    } else {
+      setIsLoading(false);
+      setError('Non authentifié');
+    }
+  }, [fetchUsers, isAuthenticated]);
+
+  // Mettre à jour les filtres quand la route change
+  useEffect(() => {
+    if (location.pathname === '/app/users/suspended') {
+      setFilters(prev => ({ ...prev, status: 'suspendu', kycStatus: 'all' }));
+    } else if (location.pathname === '/app/users/kyc') {
+      setFilters(prev => ({ ...prev, status: 'all', kycStatus: 'en_cours' }));
+    } else {
+      setFilters(prev => ({ ...prev, status: 'all', kycStatus: 'all' }));
+    }
+  }, [location.pathname]);
+
+  // 🔥 STATS DYNAMIQUES AMÉLIORÉES
+  const stats = useMemo(() => {
+    if (!users.length) {
+      return {
+        total: 0,
+        actifs: 0,
+        suspendus: 0,
+        kycEnAttente: 0,
+        kycRejetes: 0,
+        premium: 0,
+        totalSolde: 0,
+        totalTransactions: 0
+      };
+    }
+
+    return {
+      total: users.length,
+      actifs: users.filter(u => 
+        u.statut?.toLowerCase() === 'actif' || u.statut === 'ACTIF'
+      ).length,
+      suspendus: users.filter(u => 
+        u.statut?.toLowerCase() === 'suspendu' || u.statut === 'SUSPENDU'
+      ).length,
+      kycEnAttente: users.filter(u => 
+        u.kycStatus?.toLowerCase() === 'en_cours' || u.kycStatus === 'EN_COURS' || u.kycStatus === 'pending'
+      ).length,
+      kycRejetes: users.filter(u => 
+        u.kycStatus?.toLowerCase() === 'rejete' || u.kycStatus === 'REJETE' || u.kycStatus === 'rejected'
+      ).length,
+      premium: users.filter(u => 
+        u.typeCompte?.toLowerCase() === 'premium' || u.typeCompte === 'PREMIUM'
+      ).length,
+      totalSolde: users.reduce((sum, u) => sum + (parseFloat(u.solde) || 0), 0),
+      totalTransactions: users.reduce((sum, u) => sum + (parseInt(u.nombreTransactions) || parseInt(u.transactions) || 0), 0)
+    };
+  }, [users]);
+
+  // 🔥 CALCUL DES TENDANCES POUR LES STATS CARDS
+  const calculateTrend = useCallback((current, previous = current * 0.88) => {
+    const change = ((current - previous) / previous) * 100;
+    return {
+      value: Math.abs(change).toFixed(0) + '%',
+      type: change >= 0 ? 'positive' : 'negative'
+    };
+  }, []);
+
+  // 🔥 STATS CARDS AVEC DONNÉES DYNAMIQUES ET TENDANCES
+  const statsData = useMemo(() => [
+    {
+      title: 'Total Utilisateurs',
+      value: stats.total.toString(),
+      change: calculateTrend(stats.total).value,
+      changeType: calculateTrend(stats.total).type,
+      icon: UsersIcon,
+      description: 'Tous les comptes créés',
+      color: RICASH_COLORS.bleuFonce
+    },
+    {
+      title: 'Utilisateurs Actifs',
+      value: stats.actifs.toString(),
+      change: calculateTrend(stats.actifs).value,
+      changeType: calculateTrend(stats.actifs).type,
+      icon: UserCheck,
+      description: 'Comptes fonctionnels',
+      color: RICASH_COLORS.turquoise
+    },
+    {
+      title: 'KYC en Attente',
+      value: stats.kycEnAttente.toString(),
+      change: calculateTrend(stats.kycEnAttente).value,
+      changeType: calculateTrend(stats.kycEnAttente).type,
+      icon: Clock,
+      description: 'En attente de validation',
+      color: RICASH_COLORS.dore
+    },
+    {
+      title: 'KYC Rejetés',
+      value: stats.kycRejetes.toString(),
+      change: calculateTrend(stats.kycRejetes).value,
+      changeType: calculateTrend(stats.kycRejetes).type,
+      icon: AlertTriangle,
+      description: 'Documents rejetés',
+      color: '#ef4444'
+    },
+    {
+      title: 'Comptes Premium',
+      value: stats.premium.toString(),
+      change: calculateTrend(stats.premium).value,
+      changeType: calculateTrend(stats.premium).type,
+      icon: TrendingUp,
+      description: 'Abonnements premium',
+      color: RICASH_COLORS.bleuVert
+    },
+    {
+      title: 'Solde Total',
+      value: `€${stats.totalSolde.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: '+5.2%',
+      changeType: 'positive',
+      icon: Euro,
+      description: 'Total des soldes utilisateurs',
+      color: '#10b981'
+    }
+  ], [stats, calculateTrend]);
+
+  // Données filtrées optimisées
+  const filteredUsers = useMemo(() => {
+    if (!users.length) return [];
+    
+    return users.filter(user => {
+      const searchTerm = filters.search.toLowerCase();
+      const matchesSearch = !filters.search || 
+        user.nom?.toLowerCase().includes(searchTerm) ||
+        user.prenom?.toLowerCase().includes(searchTerm) ||
+        user.email?.toLowerCase().includes(searchTerm) ||
+        user.id?.toString().toLowerCase().includes(searchTerm);
+        
+      const matchesStatus = filters.status === 'all' || 
+        user.statut?.toLowerCase() === filters.status.toLowerCase();
+      const matchesKyc = filters.kycStatus === 'all' || 
+        user.kycStatus?.toLowerCase() === filters.kycStatus.toLowerCase();
+      const matchesPays = filters.pays === 'all' || user.pays === filters.pays;
+      const matchesType = filters.typeCompte === 'all' || user.typeCompte === filters.typeCompte;
+      
+      return matchesSearch && matchesStatus && matchesKyc && matchesPays && matchesType;
+    });
+  }, [users, filters]);
+
+  // Handlers optimisés
+  const updateFilters = useCallback((newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    updateFilters({ search: value, page: 1 });
+  }, [updateFilters]);
+
+  const handleFilterChange = useCallback((filterType, value) => {
+    updateFilters({ [filterType]: value, page: 1 });
+  }, [updateFilters]);
+  
+  const resetFilters = useCallback(() => {
+    setFilters({
+      search: '',
+      status: 'all',
+      kycStatus: 'all',
+      pays: 'all',
+      typeCompte: 'all',
+      page: 1,
+      limit: 20
+    });
+  }, []);
+  
+  const handleRefresh = useCallback(async () => {
+    await fetchUsers();
+  }, [fetchUsers]);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate('/login');
+  }, [logout, navigate]);
+
+  // Navigation handlers
+  const handleViewUser = useCallback((user) => {
+    navigate(`/app/users/${user.id}/details`);
+  }, [navigate]);
+
+  const handleKycUser = useCallback((user) => {
+    navigate(`/app/users/kyc/${user.id}`);
+  }, [navigate]);
+
+  const handleBlockUser = useCallback((user) => {
+    navigate(`/app/users/${user.id}/block`);
+  }, [navigate]);
+
+  const handleModifyStatus = useCallback((user) => {
+    navigate(`/app/users/${user.id}/status`);
+  }, [navigate]);
+
+  // 🔥 GESTION DES STATUTS DYNAMIQUES
+// 🔥 CORRECTION : Gestion des statuts KYC selon votre enum
+const getUserStatus = useCallback((user) => {
+  const status = user.statut?.toLowerCase();
+  const kycStatus = user.kycStatus; // Utilisez directement la valeur de l'API
+  
+  // Mapping des statuts KYC selon votre enum
+  let kycType, kycLabel;
+  switch (kycStatus) {
+    case 'EN_COURS':
+      kycType = 'warning';
+      kycLabel = 'En cours';
+      break;
+    case 'VERIFIE':
+      kycType = 'success';
+      kycLabel = 'Validé';
+      break;
+    case 'REJETE':
+      kycType = 'error';
+      kycLabel = 'Rejeté';
+      break;
+    case 'NON_VERIFIE':
+      kycType = 'secondary';
+      kycLabel = 'Non vérifié';
+      break;
+    default:
+      kycType = 'secondary';
+      kycLabel = 'Inconnu';
+  }
+  
+  return {
+    status: {
+      type: status === 'actif' ? 'success' : 
+             status === 'suspendu' ? 'error' : 'warning',
+      label: status === 'actif' ? 'Actif' : 
+             status === 'suspendu' ? 'Suspendu' : 
+             status === 'en_attente' ? 'En attente' : 'Inconnu'
+    },
+    kyc: {
+      type: kycType,
+      label: kycLabel
+    }
+  };
+}, []);
+
+  // Adapter le contenu selon la route
+  const getPageContent = () => {
+    switch (location.pathname) {
+      case '/app/users/kyc':
+        return {
+          title: 'Validation KYC',
+          description: `Validez les documents d'identité et dossiers KYC en attente (${stats.kycEnAttente} en attente)`,
+          icon: Shield,
+          color: RICASH_COLORS.turquoise
+        };
+      case '/app/users/suspended':
+        return {
+          title: 'Comptes suspendus',
+          description: `Gérez les utilisateurs dont les comptes sont suspendus (${stats.suspendus} suspendus)`,
+          icon: UserX,
+          color: '#ef4444'
+        };
+      default:
+        return {
+          title: 'Gestion des utilisateurs',
+          description: `Gérez les comptes utilisateurs, validez les KYC et surveillez l'activité (${filteredUsers.length} utilisateur(s) filtré(s))`,
+          icon: UsersIcon,
+          color: RICASH_COLORS.bleuFonce
+        };
+    }
+  };
+
+  const pageContent = getPageContent();
+
+  // Affichage des états de chargement et d'erreur
+  if (!isAuthenticated) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <RicashButton
-            variant="outline"
-            onClick={() => navigate('/app/users')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Retour aux utilisateurs
+      <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-[#29475B] mb-2">Non authentifié</h2>
+          <p className="text-[#376470] mb-4">{error || 'Redirection vers la page de connexion...'}</p>
+          <RicashButton onClick={() => navigate('/login')}>
+            Se connecter
           </RicashButton>
         </div>
-        <div className="text-center py-12">
-          <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Utilisateur non trouvé</h2>
-          <p className="text-gray-600">L'utilisateur avec l'ID {id} n'existe pas.</p>
+      </div>
+    );
+  }
+
+  if (isLoading && users.length === 0) {
+    return (
+      <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B8286] mx-auto"></div>
+          <p className="mt-4 text-[#376470]">Chargement des utilisateurs...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    toast.success('Copié dans le presse-papiers!')
+  if (error && users.length === 0) {
+    return (
+      <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 text-red-800">
+            <AlertTriangle className="h-6 w-6" />
+            <div>
+              <h3 className="font-semibold">Erreur de chargement</h3>
+              <p>{error}</p>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <RicashButton onClick={fetchUsers}>
+              Réessayer
+            </RicashButton>
+            <RicashButton variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Se reconnecter
+            </RicashButton>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-  const handleStatusChange = async () => {
-    if (!newStatus) {
-      toast.error('Veuillez sélectionner un nouveau statut')
-      return
-    }
-
-    setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    toast.success(`Statut de ${user.prenom} ${user.nom} changé de ${user.statut} vers ${newStatus}`)
-    setIsLoading(false)
-    setShowConfirmation(false)
-    
-    // Rediriger vers la page des utilisateurs
-    navigate('/app/users')
-  }
-
-  const handleConfirmChange = () => {
-    if (!newStatus) {
-      toast.error('Veuillez sélectionner un nouveau statut')
-      return
-    }
-    setShowConfirmation(true)
-  }
-
-  const statusOptions = [
-    { value: 'actif', label: 'Actif', description: 'Compte fonctionnel et accessible' },
-    { value: 'suspendu', label: 'Suspendu', description: 'Compte temporairement désactivé' },
-    { value: 'en_attente', label: 'En attente', description: 'En attente de validation' },
-    { value: 'bloque', label: 'Bloqué', description: 'Compte définitivement bloqué' }
-  ]
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <RicashButton
-            variant="outline"
-            onClick={() => navigate('/app/users')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Retour aux utilisateurs
-          </RicashButton>
-          <div>
-            <h1 className="text-3xl font-bold text-[#29475B]">
-              Modification du statut - {user.prenom} {user.nom}
-            </h1>
-            <p className="text-[#376470]">ID: {user.id}</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <RicashButton variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exporter
-          </RicashButton>
-          <RicashButton variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualiser
-          </RicashButton>
-        </div>
-      </div>
-
-      {/* Statut actuel et informations principales */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <RicashCard className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#29475B]">Statut Actuel</h3>
-            {getStatusIcon(user.statut)}
-          </div>
-          <div className="space-y-3">
-            {getStatusBadge(user.statut)}
-            <div className="text-sm text-[#376470]">
-              <p>Dernière modification: {formatDate(user.historiqueStatuts[user.historiqueStatuts.length - 1]?.date)}</p>
-              <p>Par: {user.historiqueStatuts[user.historiqueStatuts.length - 1]?.agent}</p>
+    <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
+      {/* Page header avec design Ricash */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: `${pageContent.color}20` }}>
+              <pageContent.icon className="h-6 w-6" style={{ color: pageContent.color }} />
             </div>
-          </div>
-        </RicashCard>
-
-        <RicashCard className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#29475B]">Informations Compte</h3>
-            <Shield className="h-5 w-5 text-[#2B8286]" />
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-[#29475B]">
-              {user.typeCompte}
-            </div>
-            <div className="text-sm text-[#376470]">
-              Solde: €{user.solde.toFixed(2)}
-            </div>
-            <div className="text-sm font-semibold text-[#2B8286]">
-              Transactions: {user.transactions}
-            </div>
-          </div>
-        </RicashCard>
-
-        <RicashCard className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#29475B]">KYC</h3>
-            <FileText className="h-5 w-5 text-[#B19068]" />
-          </div>
-          <div className="space-y-2">
-            <Badge className={
-              user.kycStatus === 'valide' ? 'bg-green-100 text-green-800' :
-              user.kycStatus === 'en_cours' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
-            }>
-              {user.kycStatus === 'valide' ? 'Validé' : user.kycStatus === 'en_cours' ? 'En cours' : 'Rejeté'}
-            </Badge>
-            <div className="text-sm text-[#376470]">
-              <p>Créé le: {formatDate(user.dateCreation)}</p>
-              <p>Dernière connexion: {formatDate(user.dernierLogin)}</p>
-            </div>
-          </div>
-        </RicashCard>
-      </div>
-
-      {/* Formulaire de modification du statut */}
-      <RicashCard className="p-6">
-        <h3 className="text-lg font-semibold text-[#29475B] mb-6 flex items-center gap-2">
-          <Edit className="h-5 w-5" />
-          Modification du statut
-        </h3>
-        
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-4">
             <div>
-              <RicashLabel className="text-sm font-medium text-[#376470] mb-2 block">
-                Nouveau statut *
-              </RicashLabel>
-              <RicashSelect
-                value={newStatus}
-                onValueChange={setNewStatus}
-                options={statusOptions.map(option => ({
-                  value: option.value,
-                  label: option.label
-                }))}
-                placeholder="Sélectionner un statut"
-              />
-              {newStatus && (
-                <p className="text-sm text-[#376470] mt-2">
-                  {statusOptions.find(opt => opt.value === newStatus)?.description}
+              <h1 className="text-4xl font-bold tracking-tight text-[#29475B] mb-2">
+                {pageContent.title}
+              </h1>
+              <p className="text-lg text-[#376470] font-medium">
+                {pageContent.description}
+              </p>
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>Rôle des utilisateurs :</strong> Les utilisateurs sont des clients qui effectuent des transferts d'argent. 
+                  Chaque utilisateur peut être expéditeur ou destinataire dans les transferts. 
+                  Ils doivent passer la validation KYC pour effectuer des transactions.
                 </p>
-              )}
-            </div>
-
-            <div>
-              <RicashLabel className="text-sm font-medium text-[#376470] mb-2 block">
-                Raison du changement *
-              </RicashLabel>
-              <RicashTextarea
-                placeholder="Expliquez la raison du changement de statut..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-
-            <div>
-              <RicashLabel className="text-sm font-medium text-[#376470] mb-2 block">
-                Durée (si applicable)
-              </RicashLabel>
-              <RicashSelect
-                value={duration}
-                onValueChange={setDuration}
-                options={[
-                  { value: '', label: 'Permanent' },
-                  { value: '1h', label: '1 heure' },
-                  { value: '24h', label: '24 heures' },
-                  { value: '7d', label: '7 jours' },
-                  { value: '30d', label: '30 jours' }
-                ]}
-                placeholder="Sélectionner une durée"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <RicashLabel className="text-sm font-medium text-[#376470] mb-2 block">
-                Commentaires additionnels
-              </RicashLabel>
-              <RicashTextarea
-                placeholder="Ajoutez des commentaires ou instructions supplémentaires..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                className="resize-none"
-              />
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-yellow-800">Attention</h4>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Cette action modifiera le statut du compte utilisateur et pourra affecter son accès aux services.
-                  </p>
-                </div>
               </div>
             </div>
           </div>
+          <div className="flex gap-3">
+            <RicashButton
+              variant="accent"
+              size="lg"
+              onClick={() => navigate('/app/users/create')}
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Nouvel utilisateur
+            </RicashButton>
+            <RicashButton
+              variant="outline"
+              size="lg"
+              onClick={handleRefresh}
+              loading={isLoading}
+              loadingText="Actualisation..."
+            >
+              <RefreshCw className="mr-2 h-5 w-5" />
+              Actualiser
+            </RicashButton>
+          </div>
         </div>
+      </div>
 
-        <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-          <RicashButton
-            variant="outline"
-            onClick={() => navigate('/app/users')}
-          >
-            Annuler
-          </RicashButton>
-          <RicashButton
-            onClick={handleConfirmChange}
-            disabled={!newStatus || !reason}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Modifier le statut
-          </RicashButton>
+      {/* 🔥 STATS CARDS DYNAMIQUES AVEC GRID AMÉLIORÉ */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {statsData.map((stat, index) => (
+          <RicashStatCard
+            key={index} 
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            changeType={stat.changeType}
+            description={stat.description}
+            icon={stat.icon}
+            iconColor={stat.color}
+            className="transform hover:scale-105 transition-transform duration-300 hover:shadow-lg"
+          />
+        ))}
+      </div>
+
+      {/* Filtres et recherche */}
+      <RicashCard className="overflow-hidden">
+        <div className="p-6 border-b border-[#376470]/10">
+          <h3 className="text-xl font-bold text-[#29475B] mb-2">
+            Filtres et Recherche
+          </h3>
+          <p className="text-[#376470]">
+            Recherchez et filtrez les utilisateurs selon vos critères
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#376470]" />
+                <RicashInput
+                  placeholder="Rechercher par nom, email ou ID..."
+                  value={filters.search}
+                  onChange={handleSearchChange}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <RicashSelect
+              value={filters.status}
+              onValueChange={(value) => handleFilterChange('status', value)}
+              options={[
+                { value: 'all', label: 'Tous les statuts' },
+                { value: 'actif', label: 'Actifs' },
+                { value: 'suspendu', label: 'Suspendus' },
+                { value: 'en_attente', label: 'En attente' },
+                { value: 'bloque', label: 'Bloqués' }
+              ]}
+            />
+            
+            <RicashSelect
+              value={filters.kycStatus}
+              onValueChange={(value) => handleFilterChange('kycStatus', value)}
+              options={[
+                { value: 'all', label: 'Tous KYC' },
+                { value: 'valide', label: 'KYC Validé' },
+                { value: 'en_cours', label: 'En cours' },
+                { value: 'rejete', label: 'Rejeté' },
+                { value: 'non_verifie', label: 'Non vérifié' }
+              ]}
+            />
+            
+            <RicashButton variant="outline" onClick={resetFilters}>
+              <Filter className="mr-2 h-4 w-4" />
+              Reset
+            </RicashButton>
+          </div>
         </div>
       </RicashCard>
 
-      {/* Historique des statuts */}
-      <RicashCard className="p-6">
-        <h3 className="text-lg font-semibold text-[#29475B] mb-4 flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Historique des statuts
-        </h3>
-        <div className="space-y-4">
-          {user.historiqueStatuts.map((entry, index) => (
-            <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-[#2B8286] flex items-center justify-center">
-                <span className="text-white text-sm font-semibold">{index + 1}</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-[#29475B]">{entry.statut}</p>
-                  {getStatusBadge(entry.statut)}
-                </div>
-                <p className="text-sm text-[#376470]">{formatDate(entry.date)} - {entry.agent}</p>
-                <p className="text-sm text-[#29475B] mt-1">{entry.raison}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </RicashCard>
-
-      {/* Modal de confirmation */}
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
-              <h3 className="text-lg font-semibold text-[#29475B]">Confirmer le changement</h3>
-            </div>
-            <p className="text-[#376470] mb-6">
-              Êtes-vous sûr de vouloir changer le statut de <strong>{user.prenom} {user.nom}</strong> 
-              de <strong>{user.statut}</strong> vers <strong>{newStatus}</strong> ?
-            </p>
-            <div className="flex justify-end gap-3">
-              <RicashButton
-                variant="outline"
-                onClick={() => setShowConfirmation(false)}
-              >
-                Annuler
-              </RicashButton>
-              <RicashButton
-                onClick={handleStatusChange}
-                loading={isLoading}
-                className="flex items-center gap-2"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Confirmer
-              </RicashButton>
-            </div>
+      {/* Tableau des utilisateurs - DYNAMIQUE */}
+      <RicashTableCard
+        title="Liste des Utilisateurs"
+        description={`${filteredUsers.length} utilisateur(s) trouvé(s) sur ${users.length} au total`}
+        className="overflow-hidden"
+      >
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2B8286] mx-auto"></div>
+            <p className="mt-4 text-[#376470]">Mise à jour des données...</p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="overflow-x-auto">
+            <RicashTable>
+              <RicashTableHeader>
+                <RicashTableRow>
+                  <RicashTableCell className="font-semibold">Utilisateur</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Contact</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Localisation</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Statut</RicashTableCell>
+                  <RicashTableCell className="font-semibold">KYC</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Solde</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Transactions</RicashTableCell>
+                  <RicashTableCell className="font-semibold">Dernière connexion</RicashTableCell>
+                  <RicashTableCell className="font-semibold text-right">Actions</RicashTableCell>
+                </RicashTableRow>
+              </RicashTableHeader>
+              <RicashTableBody>
+                {filteredUsers.map((user) => {
+                  const userStatus = getUserStatus(user);
+                  return (
+                    <RicashTableRow key={user.id} className="hover:bg-[#376470]/5 transition-colors">
+                      <RicashTableCell>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            userStatus.status.type === 'success' ? 'bg-green-500' :
+                            userStatus.status.type === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+                          }`}></div>
+                          <div className="w-10 h-10 bg-gradient-to-br from-[#2B8286] to-[#2B8286]/80 rounded-lg flex items-center justify-center shadow-sm">
+                            <UsersIcon className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-[#29475B]">
+                              {user.prenom || 'N/A'} {user.nom || 'N/A'}
+                            </div>
+                            <div className="text-sm text-[#376470]">ID: {user.id}</div>
+                          </div>
+                        </div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <div>
+                          <div className="text-sm text-[#29475B]">{user.email || 'N/A'}</div>
+                          <div className="text-sm text-[#376470]">{user.telephone || 'N/A'}</div>
+                        </div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <div>
+                          <div className="text-sm text-[#29475B]">{user.ville || 'N/A'}</div>
+                          <div className="text-sm text-[#376470]">{user.pays || 'N/A'}</div>
+                        </div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <RicashStatusBadge
+                          status={userStatus.status.type}
+                          text={userStatus.status.label}
+                        />
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <RicashStatusBadge
+                          status={userStatus.kyc.type}
+                          text={userStatus.kyc.label}
+                        />
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <div className="text-sm font-semibold text-[#29475B]">
+                          €{(parseFloat(user.solde) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-xs text-[#376470]">{user.typeCompte || 'Standard'}</div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <div className="text-center font-medium text-[#29475B]">
+                          {user.nombreTransactions || user.transactions || 0}
+                        </div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell>
+                        <div className="text-sm text-[#376470]">
+                          {user.derniereConnexion || 'Jamais connecté'}
+                        </div>
+                      </RicashTableCell>
+                      
+                      <RicashTableCell className="text-right">
+                        <RicashDropdownMenu
+                          trigger={
+                            <RicashIconButton variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </RicashIconButton>
+                          }
+                          align="end"
+                        >
+                          <RicashDropdownItem onClick={() => handleViewUser(user)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Voir détails
+                          </RicashDropdownItem>
+                          
+                          {(user.kycStatus === 'en_cours' || user.kycStatus === 'EN_COURS') && (
+                            <RicashDropdownItem onClick={() => handleKycUser(user)}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Valider KYC
+                            </RicashDropdownItem>
+                          )}
+                          
+                          <RicashDropdownSeparator />
+                          
+                          <RicashDropdownItem onClick={() => handleModifyStatus(user)}>
+                            <Shield className="mr-2 h-4 w-4" />
+                            Modifier le statut
+                          </RicashDropdownItem>
+                          
+                          <RicashDropdownItem onClick={() => handleBlockUser(user)}>
+                            <Ban className="mr-2 h-4 w-4" />
+                            Bloquer/Débloquer
+                          </RicashDropdownItem>
+                          
+                          <RicashDropdownItem className="text-red-600 hover:text-red-700">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </RicashDropdownItem>
+                        </RicashDropdownMenu>
+                      </RicashTableCell>
+                    </RicashTableRow>
+                  );
+                })}
+              </RicashTableBody>
+            </RicashTable>
+          </div>
+        )}
+
+        {filteredUsers.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <UsersIcon className="h-16 w-16 mx-auto text-[#376470]/50 mb-4" />
+            <p className="text-[#376470] text-lg font-medium">Aucun utilisateur trouvé</p>
+            <p className="text-[#376470]/70">Ajustez vos filtres pour voir plus de résultats</p>
+          </div>
+        )}
+      </RicashTableCard>
     </div>
-  )
+  );
 }

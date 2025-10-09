@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft,
   User, 
@@ -28,160 +28,54 @@ import {
   FileText,
   Bell,
   Globe
-} from 'lucide-react'
-import { RicashButton } from '@/components/ui/ricash-button'
-import { RicashCard } from '@/components/ui/ricash-card'
-import { RicashInput } from '@/components/ui/ricash-input'
-import { RicashLabel } from '@/components/ui/ricash-label'
-import { RicashTextarea } from '@/components/ui/ricash-textarea'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { toast } from 'sonner'
-
-// Mock data pour les détails d'utilisateur
-const mockUserDetails = {
-  USR001: {
-    id: 'USR001',
-    nom: 'Diallo',
-    prenom: 'Aminata',
-    email: 'aminata.diallo@email.com',
-    telephone: '+221 77 123 45 67',
-    pays: 'Sénégal',
-    ville: 'Dakar',
-    adresse: 'Mermoz, Dakar',
-    dateNaissance: '1990-05-15',
-    statut: 'actif',
-    kycStatus: 'valide',
-    typeCompte: 'Premium',
-    solde: 2500000,
-    limiteJournaliere: 500000,
-    limiteMensuelle: 10000000,
-    dateCreation: '2023-01-15T10:30:00Z',
-    dernierLogin: '2024-01-20T14:30:00Z',
-    nombreTransactions: 156,
-    montantTotalTransactions: 12500000,
-    documents: [
-      { nom: 'CNI', type: 'pdf', taille: '2.3 MB', statut: 'validé' },
-      { nom: 'Passeport', type: 'pdf', taille: '1.8 MB', statut: 'validé' },
-      { nom: 'Justificatif domicile', type: 'pdf', taille: '1.2 MB', statut: 'validé' },
-      { nom: 'Justificatif revenus', type: 'pdf', taille: '2.1 MB', statut: 'en_attente' }
-    ],
-    preferences: {
-      notifications: true,
-      sms: true,
-      email: true,
-      langue: 'fr'
-    },
-    historique: [
-      { date: '2024-01-20T14:30:00Z', action: 'Connexion réussie', statut: 'succes' },
-      { date: '2024-01-20T10:15:00Z', action: 'Transaction envoyée', statut: 'succes' },
-      { date: '2024-01-19T16:45:00Z', action: 'Document validé', statut: 'succes' },
-      { date: '2024-01-19T09:20:00Z', action: 'Tentative de connexion', statut: 'succes' }
-    ],
-    transactions: [
-      {
-        id: 'TXN001',
-        date: '2024-01-20T10:15:00Z',
-        montant: 150000,
-        type: 'envoi',
-        statut: 'complété',
-        destinataire: 'Moussa Ba'
-      },
-      {
-        id: 'TXN002',
-        date: '2024-01-19T14:30:00Z',
-        montant: 75000,
-        type: 'reception',
-        statut: 'complété',
-        expediteur: 'Fatou Ndiaye'
-      }
-    ]
-  },
-  USR002: {
-    id: 'USR002',
-    nom: 'Ba',
-    prenom: 'Moussa',
-    email: 'moussa.ba@email.com',
-    telephone: '+221 76 987 65 43',
-    pays: 'Sénégal',
-    ville: 'Thiès',
-    adresse: 'Thiès Centre',
-    dateNaissance: '1985-08-22',
-    statut: 'suspendu',
-    kycStatus: 'en_cours',
-    typeCompte: 'Standard',
-    solde: 500000,
-    limiteJournaliere: 200000,
-    limiteMensuelle: 2000000,
-    dateCreation: '2023-03-10T08:15:00Z',
-    dernierLogin: '2024-01-15T10:20:00Z',
-    nombreTransactions: 45,
-    montantTotalTransactions: 3200000,
-    documents: [
-      { nom: 'CNI', type: 'pdf', taille: '2.1 MB', statut: 'en_attente' },
-      { nom: 'Justificatif domicile', type: 'pdf', taille: '1.5 MB', statut: 'rejete' }
-    ],
-    preferences: {
-      notifications: false,
-      sms: true,
-      email: false,
-      langue: 'fr'
-    },
-    historique: [
-      { date: '2024-01-15T10:20:00Z', action: 'Compte suspendu', statut: 'warning' },
-      { date: '2024-01-15T09:45:00Z', action: 'Document rejeté', statut: 'error' },
-      { date: '2024-01-14T16:30:00Z', action: 'Connexion réussie', statut: 'succes' }
-    ],
-    transactions: [
-      {
-        id: 'TXN003',
-        date: '2024-01-15T09:30:00Z',
-        montant: 100000,
-        type: 'envoi',
-        statut: 'suspendu',
-        destinataire: 'Aminata Diallo'
-      }
-    ]
-  }
-}
+} from 'lucide-react';
+import { RicashButton } from '@/components/ui/ricash-button';
+import { RicashCard } from '@/components/ui/ricash-card';
+import { RicashInput } from '@/components/ui/ricash-input';
+import { RicashLabel } from '@/components/ui/ricash-label';
+import { RicashTextarea } from '@/components/ui/ricash-textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { useUserDetails } from '@/hooks/useUserDetails';
 
 const getStatusBadge = (status) => {
   switch (status) {
     case 'actif':
-      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Actif</Badge>
+      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Actif</Badge>;
     case 'suspendu':
-      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><Ban className="h-3 w-3" />Suspendu</Badge>
+      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><Ban className="h-3 w-3" />Suspendu</Badge>;
     case 'en_attente':
-      return <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-3 w-3" />En attente</Badge>
+      return <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
     case 'valide':
-      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Validé</Badge>
+      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Validé</Badge>;
     case 'en_cours':
-      return <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>
+      return <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>;
     case 'rejete':
-      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>
+      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>;
     default:
-      return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
+      return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
   }
-}
+};
 
 const getStatusIcon = (status) => {
   switch (status) {
     case 'actif':
-      return <CheckCircle className="h-5 w-5 text-green-500" />
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
     case 'suspendu':
-      return <Ban className="h-5 w-5 text-red-500" />
+      return <Ban className="h-5 w-5 text-red-500" />;
     case 'en_attente':
-      return <Clock className="h-5 w-5 text-yellow-500" />
+      return <Clock className="h-5 w-5 text-yellow-500" />;
     case 'valide':
-      return <UserCheck className="h-5 w-5 text-green-500" />
+      return <UserCheck className="h-5 w-5 text-green-500" />;
     case 'en_cours':
-      return <Clock className="h-5 w-5 text-blue-500" />
+      return <Clock className="h-5 w-5 text-blue-500" />;
     case 'rejete':
-      return <XCircle className="h-5 w-5 text-red-500" />
+      return <XCircle className="h-5 w-5 text-red-500" />;
     default:
-      return <Clock className="h-5 w-5 text-gray-500" />
+      return <Clock className="h-5 w-5 text-gray-500" />;
   }
-}
+};
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('fr-FR', {
@@ -189,26 +83,92 @@ const formatCurrency = (amount) => {
     currency: 'EUR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(amount)
-}
+  }).format(amount || 0);
+};
 
 const formatDate = (dateString) => {
+  if (!dateString) return 'Non défini';
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
-  })
-}
+  });
+};
 
 export default function UserDetailsPage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [comment, setComment] = useState('')
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [comment, setComment] = useState('');
   
-  const user = mockUserDetails[id]
-  
+  const { user, loading, error, fetchUser, updateUserStatus } = useUserDetails();
+
+  useEffect(() => {
+    if (id) {
+      fetchUser(id);
+    }
+  }, [id, fetchUser]);
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copié dans le presse-papiers!');
+  };
+
+  const handleStatusChange = async (newStatus, reason, duration, comment) => {
+    try {
+      await updateUserStatus(id, {
+        newStatus,
+        reason,
+        duration,
+        comment
+      });
+      toast.success('Statut mis à jour avec succès');
+    } catch (err) {
+      toast.error('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B8286] mx-auto"></div>
+          <p className="mt-4 text-[#376470]">Chargement des détails utilisateur...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <RicashButton
+            variant="outline"
+            onClick={() => navigate('/app/users')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour aux utilisateurs
+          </RicashButton>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 text-red-800">
+            <AlertTriangle className="h-6 w-6" />
+            <div>
+              <h3 className="font-semibold">Erreur</h3>
+              <p>{error}</p>
+            </div>
+          </div>
+          <RicashButton onClick={() => fetchUser(id)} className="mt-4">
+            Réessayer
+          </RicashButton>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="p-6">
@@ -228,17 +188,7 @@ export default function UserDetailsPage() {
           <p className="text-gray-600">L'utilisateur avec l'ID {id} n'existe pas.</p>
         </div>
       </div>
-    )
-  }
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    toast.success('Copié dans le presse-papiers!')
-  }
-
-  const handleStatusChange = (newStatus) => {
-    // Logique de changement de statut
-    toast.success(`Statut changé en: ${newStatus}`)
+    );
   }
 
   return (
@@ -266,7 +216,7 @@ export default function UserDetailsPage() {
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </RicashButton>
-          <RicashButton variant="outline">
+          <RicashButton variant="outline" onClick={() => fetchUser(id)}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Actualiser
           </RicashButton>
@@ -319,7 +269,7 @@ export default function UserDetailsPage() {
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Type de compte:</span> {user.typeCompte}</p>
             <p><span className="font-medium">KYC:</span> {getStatusBadge(user.kycStatus)}</p>
-            <p><span className="font-medium">Transactions:</span> {user.nombreTransactions}</p>
+            <p><span className="font-medium">Transactions:</span> {user.nombreTransactions || 0}</p>
             <p><span className="font-medium">Volume total:</span> {formatCurrency(user.montantTotalTransactions)}</p>
           </div>
         </RicashCard>
@@ -369,7 +319,7 @@ export default function UserDetailsPage() {
                 Documents KYC
               </h3>
               <div className="space-y-3">
-                {user.documents.map((doc, index) => (
+                {(user.documents || []).map((doc, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="font-medium text-[#29475B]">{doc.nom}</p>
@@ -384,6 +334,9 @@ export default function UserDetailsPage() {
                     </Badge>
                   </div>
                 ))}
+                {(!user.documents || user.documents.length === 0) && (
+                  <p className="text-[#376470] text-center py-4">Aucun document disponible</p>
+                )}
               </div>
             </RicashCard>
           </div>
@@ -395,7 +348,7 @@ export default function UserDetailsPage() {
               Dernières transactions
             </h3>
             <div className="space-y-3">
-              {user.transactions.map((transaction) => (
+              {(user.transactions || []).map((transaction) => (
                 <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-[#29475B]">
@@ -415,6 +368,9 @@ export default function UserDetailsPage() {
                   </div>
                 </div>
               ))}
+              {(!user.transactions || user.transactions.length === 0) && (
+                <p className="text-[#376470] text-center py-4">Aucune transaction disponible</p>
+              )}
             </div>
           </RicashCard>
         </TabsContent>
@@ -487,8 +443,8 @@ export default function UserDetailsPage() {
                   <Bell className="h-4 w-4 text-[#376470]" />
                   <span className="text-[#29475B]">Notifications</span>
                 </div>
-                <Badge className={user.preferences.notifications ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                  {user.preferences.notifications ? 'Activé' : 'Désactivé'}
+                <Badge className={user.preferences?.notifications ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {user.preferences?.notifications ? 'Activé' : 'Désactivé'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -496,8 +452,8 @@ export default function UserDetailsPage() {
                   <Phone className="h-4 w-4 text-[#376470]" />
                   <span className="text-[#29475B]">SMS</span>
                 </div>
-                <Badge className={user.preferences.sms ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                  {user.preferences.sms ? 'Activé' : 'Désactivé'}
+                <Badge className={user.preferences?.sms ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {user.preferences?.sms ? 'Activé' : 'Désactivé'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -505,8 +461,8 @@ export default function UserDetailsPage() {
                   <Mail className="h-4 w-4 text-[#376470]" />
                   <span className="text-[#29475B]">Email</span>
                 </div>
-                <Badge className={user.preferences.email ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                  {user.preferences.email ? 'Activé' : 'Désactivé'}
+                <Badge className={user.preferences?.email ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {user.preferences?.email ? 'Activé' : 'Désactivé'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -515,7 +471,7 @@ export default function UserDetailsPage() {
                   <span className="text-[#29475B]">Langue</span>
                 </div>
                 <Badge className="bg-blue-100 text-blue-800">
-                  {user.preferences.langue.toUpperCase()}
+                  {(user.preferences?.langue || 'fr').toUpperCase()}
                 </Badge>
               </div>
             </div>
@@ -529,7 +485,7 @@ export default function UserDetailsPage() {
               Documents KYC
             </h3>
             <div className="space-y-4">
-              {user.documents.map((doc, index) => (
+              {(user.documents || []).map((doc, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-[#376470]" />
@@ -552,6 +508,9 @@ export default function UserDetailsPage() {
                   </div>
                 </div>
               ))}
+              {(!user.documents || user.documents.length === 0) && (
+                <p className="text-[#376470] text-center py-8">Aucun document disponible</p>
+              )}
             </div>
           </RicashCard>
         </TabsContent>
@@ -563,7 +522,7 @@ export default function UserDetailsPage() {
               Historique des actions
             </h3>
             <div className="space-y-4">
-              {user.historique.map((action, index) => (
+              {(user.historique || []).map((action, index) => (
                 <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="w-8 h-8 rounded-full bg-[#2B8286] flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">{index + 1}</span>
@@ -582,6 +541,9 @@ export default function UserDetailsPage() {
                   </Badge>
                 </div>
               ))}
+              {(!user.historique || user.historique.length === 0) && (
+                <p className="text-[#376470] text-center py-8">Aucun historique disponible</p>
+              )}
             </div>
           </RicashCard>
 
@@ -608,5 +570,5 @@ export default function UserDetailsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
