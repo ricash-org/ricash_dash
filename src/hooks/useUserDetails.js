@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-// import { userService } from '@/services/userService';
+import userService from '@/services/userService'; 
 
 export const useUserDetails = () => {
   const [user, setUser] = useState(null);

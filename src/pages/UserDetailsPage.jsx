@@ -49,9 +49,11 @@ const getStatusBadge = (status) => {
       return <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
     case 'valide':
       return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Validé</Badge>;
-    case 'en_cours':
+    case 'VERIFIE':
+      return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Vérifié</Badge>;
+    case 'EN_COURS':
       return <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>;
-    case 'rejete':
+    case 'REJETE':
       return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><XCircle className="h-3 w-3" />Rejeté</Badge>;
     default:
       return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
@@ -68,9 +70,11 @@ const getStatusIcon = (status) => {
       return <Clock className="h-5 w-5 text-yellow-500" />;
     case 'valide':
       return <UserCheck className="h-5 w-5 text-green-500" />;
-    case 'en_cours':
+    case 'VERIFIE':
+      return <UserCheck className="h-5 w-5 text-green-500" />;
+    case 'EN_COURS':
       return <Clock className="h-5 w-5 text-blue-500" />;
-    case 'rejete':
+    case 'REJETE':
       return <XCircle className="h-5 w-5 text-red-500" />;
     default:
       return <Clock className="h-5 w-5 text-gray-500" />;
@@ -80,7 +84,7 @@ const getStatusIcon = (status) => {
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'XOF',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount || 0);
@@ -97,12 +101,48 @@ const formatDate = (dateString) => {
   });
 };
 
+// Fonction pour mapper les données de l'API vers le format attendu par le composant
+const mapApiDataToComponent = (apiData) => {
+  if (!apiData) return null;
+  
+  return {
+    ...apiData,
+    // Statut actif
+    statut: apiData.actif ? 'actif' : 'suspendu',
+    // Données financières
+    solde: apiData.portefeuille?.solde || 0,
+    limiteJournaliere: 100000, // Valeur par défaut
+    limiteMensuelle: 1000000, // Valeur par défaut
+    montantTotalTransactions: 0, // À implémenter si disponible
+    // Documents
+    documents: apiData.documentsIdentite || [],
+    // Adresse formatée
+    adresseText: apiData.adresse ? 
+      `${apiData.adresse.ligne1}${apiData.adresse.ligne2 ? ', ' + apiData.adresse.ligne2 : ''}\n${apiData.adresse.codePostal} ${apiData.adresse.ville}\n${apiData.adresse.pays}` 
+      : 'Non renseignée',
+    // Préférences par défaut
+    preferences: {
+      notifications: true,
+      sms: true,
+      email: true,
+      langue: 'fr'
+    },
+    // Données manquantes avec valeurs par défaut
+    nombreTransactions: 0,
+    transactions: [],
+    historique: []
+  };
+};
+
 export default function UserDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [comment, setComment] = useState('');
   
-  const { user, loading, error, fetchUser, updateUserStatus } = useUserDetails();
+  const { user: apiUser, loading, error, fetchUser, updateUserStatus } = useUserDetails();
+
+  // Mapper les données de l'API
+  const user = mapApiDataToComponent(apiUser);
 
   useEffect(() => {
     if (id) {
@@ -208,7 +248,7 @@ export default function UserDetailsPage() {
             <h1 className="text-3xl font-bold text-[#29475B]">
               {user.prenom} {user.nom}
             </h1>
-            <p className="text-[#376470]">ID: {user.id}</p>
+            {/* L'ID a été supprimé comme demandé */}
           </div>
         </div>
         <div className="flex gap-2">
@@ -253,10 +293,10 @@ export default function UserDetailsPage() {
               {formatCurrency(user.solde)}
             </div>
             <div className="text-sm text-[#376470]">
-              Limite journalière: {formatCurrency(user.limiteJournaliere)}
+              Devise: {user.portefeuille?.devise || 'XOF'}
             </div>
             <div className="text-sm font-semibold text-[#2B8286]">
-              Limite mensuelle: {formatCurrency(user.limiteMensuelle)}
+              Dernière mise à jour: {formatDate(user.portefeuille?.dateDerniereMAJ)}
             </div>
           </div>
         </RicashCard>
@@ -267,8 +307,8 @@ export default function UserDetailsPage() {
             <Shield className="h-5 w-5 text-[#B19068]" />
           </div>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Type de compte:</span> {user.typeCompte}</p>
-            <p><span className="font-medium">KYC:</span> {getStatusBadge(user.kycStatus)}</p>
+            <p><span className="font-medium">Type de compte:</span> {user.role}</p>
+            <p><span className="font-medium">KYC:</span> {getStatusBadge(user.kycStatut)}</p>
             <p><span className="font-medium">Transactions:</span> {user.nombreTransactions || 0}</p>
             <p><span className="font-medium">Volume total:</span> {formatCurrency(user.montantTotalTransactions)}</p>
           </div>
@@ -298,6 +338,10 @@ export default function UserDetailsPage() {
                   <span className="font-semibold text-[#29475B]">{formatCurrency(user.solde)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-[#376470]">Devise</span>
+                  <span className="font-semibold text-[#29475B]">{user.portefeuille?.devise || 'XOF'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-[#376470]">Limite journalière</span>
                   <span className="font-semibold text-[#29475B]">{formatCurrency(user.limiteJournaliere)}</span>
                 </div>
@@ -306,8 +350,8 @@ export default function UserDetailsPage() {
                   <span className="font-semibold text-[#29475B]">{formatCurrency(user.limiteMensuelle)}</span>
                 </div>
                 <div className="flex justify-between items-center py-3 bg-[#2B8286]/10 rounded-lg px-3">
-                  <span className="font-semibold text-[#29475B]">Volume total</span>
-                  <span className="font-bold text-lg text-[#2B8286]">{formatCurrency(user.montantTotalTransactions)}</span>
+                  <span className="font-semibold text-[#29475B]">Dernière mise à jour</span>
+                  <span className="font-bold text-lg text-[#2B8286]">{formatDate(user.portefeuille?.dateDerniereMAJ)}</span>
                 </div>
               </div>
             </RicashCard>
@@ -320,18 +364,26 @@ export default function UserDetailsPage() {
               </h3>
               <div className="space-y-3">
                 {(user.documents || []).map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={doc.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-[#29475B]">{doc.nom}</p>
-                      <p className="text-sm text-[#376470]">{doc.taille}</p>
+                      <p className="font-medium text-[#29475B]">{doc.type}</p>
+                      <p className="text-sm text-[#376470]">Numéro: {doc.numero}</p>
+                      {doc.dateExpiration && (
+                        <p className="text-sm text-[#376470]">Expire: {formatDate(doc.dateExpiration)}</p>
+                      )}
                     </div>
-                    <Badge className={
-                      doc.statut === 'validé' ? 'bg-green-100 text-green-800' :
-                      doc.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }>
-                      {doc.statut}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={
+                        doc.dateValidation ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }>
+                        {doc.dateValidation ? 'Validé' : 'En attente'}
+                      </Badge>
+                      <RicashButton variant="outline" size="sm">
+                        <a href={doc.imageRectoUrl} target="_blank" rel="noopener noreferrer">
+                          <Eye className="h-4 w-4" />
+                        </a>
+                      </RicashButton>
+                    </div>
                   </div>
                 ))}
                 {(!user.documents || user.documents.length === 0) && (
@@ -414,11 +466,11 @@ export default function UserDetailsPage() {
               </div>
               <div>
                 <RicashLabel className="text-sm font-medium text-[#376470]">Pays</RicashLabel>
-                <p className="text-[#29475B]">{user.pays}</p>
+                <p className="text-[#29475B]">{user.adresse?.pays || 'Non renseigné'}</p>
               </div>
               <div>
                 <RicashLabel className="text-sm font-medium text-[#376470]">Ville</RicashLabel>
-                <p className="text-[#29475B]">{user.ville}</p>
+                <p className="text-[#29475B]">{user.adresse?.ville || 'Non renseigné'}</p>
               </div>
               <div>
                 <RicashLabel className="text-sm font-medium text-[#376470]">Date de naissance</RicashLabel>
@@ -426,7 +478,7 @@ export default function UserDetailsPage() {
               </div>
               <div className="md:col-span-2">
                 <RicashLabel className="text-sm font-medium text-[#376470]">Adresse</RicashLabel>
-                <p className="text-[#29475B]">{user.adresse}</p>
+                <p className="text-[#29475B] whitespace-pre-line">{user.adresseText}</p>
               </div>
             </div>
           </RicashCard>
@@ -486,25 +538,49 @@ export default function UserDetailsPage() {
             </h3>
             <div className="space-y-4">
               {(user.documents || []).map((doc, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={doc.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-[#376470]" />
                     <div>
-                      <p className="font-medium text-[#29475B]">{doc.nom}</p>
-                      <p className="text-sm text-[#376470]">{doc.taille}</p>
+                      <p className="font-medium text-[#29475B]">{doc.type} - {doc.numero}</p>
+                      <div className="text-sm text-[#376470]">
+                        <p>Recto: {doc.imageRectoUrl ? 'Disponible' : 'Manquant'}</p>
+                        <p>Verso: {doc.imageVersoUrl ? 'Disponible' : 'Manquant'}</p>
+                        {doc.dateExpiration && (
+                          <p>Expire le: {formatDate(doc.dateExpiration)}</p>
+                        )}
+                        {doc.dateValidation && (
+                          <p>Validé le: {formatDate(doc.dateValidation)}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge className={
-                      doc.statut === 'validé' ? 'bg-green-100 text-green-800' :
-                      doc.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      doc.dateValidation ? 'bg-green-100 text-green-800' : 
+                      doc.dateExpiration && new Date(doc.dateExpiration) < new Date() ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'
                     }>
-                      {doc.statut}
+                      {doc.dateValidation ? 'Validé' : 
+                       doc.dateExpiration && new Date(doc.dateExpiration) < new Date() ? 'Expiré' : 
+                       'En attente'}
                     </Badge>
-                    <RicashButton variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </RicashButton>
+                    <div className="flex gap-1">
+                      {doc.imageRectoUrl && (
+                        <RicashButton variant="outline" size="sm">
+                          <a href={doc.imageRectoUrl} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-4 w-4" />
+                          </a>
+                        </RicashButton>
+                      )}
+                      {doc.imageVersoUrl && (
+                        <RicashButton variant="outline" size="sm">
+                          <a href={doc.imageVersoUrl} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-4 w-4" />
+                          </a>
+                        </RicashButton>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

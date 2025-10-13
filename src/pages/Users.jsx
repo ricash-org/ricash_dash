@@ -289,9 +289,9 @@ export default function Users() {
   }, [logout, navigate]);
 
   // Navigation handlers
-  const handleViewUser = useCallback((user) => {
-    navigate(`/app/users/${user.id}/details`);
-  }, [navigate]);
+const handleViewUser = useCallback((userId) => {
+  navigate(`/app/users/${userId}`);
+}, [navigate]);
 
   const handleKycUser = useCallback((user) => {
     navigate(`/app/users/kyc/${user.id}`);
@@ -654,7 +654,7 @@ export default function Users() {
                           }
                           align="end"
                         >
-                          <RicashDropdownItem onClick={() => handleViewUser(user)}>
+                          <RicashDropdownItem onClick={() => handleViewUser(user.id)}>
                             <Eye className="mr-2 h-4 w-4" />
                             Voir détails
                           </RicashDropdownItem>

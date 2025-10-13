@@ -62,7 +62,7 @@ function App() {
               <Route path="users" element={<Users />} />
               <Route path="users/kyc" element={<Users />} />
               <Route path="users/suspended" element={<Users />} />
-              <Route path="users/:id/details" element={<UserDetailsPage />} />
+             <Route path="users/:id" element={<UserDetailsPage />} />
               <Route path="users/:id/edit" element={<EditUserPage />} />
               <Route path="users/create" element={<CreateUserPage />} />
               <Route path="users/kyc/:id" element={<KycValidationPage />} />
