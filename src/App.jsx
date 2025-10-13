@@ -78,7 +78,8 @@ function App() {
               <Route path="agencies/:id/edit" element={<EditAgencyPage />} />
               <Route path="agencies/create" element={<CreateAgencyPage />} />
               <Route path="agents" element={<Agents />} />
-              <Route path="agents/:id/details" element={<AgentDetailsPage />} />
+              <Route path="agents/:id" element={<AgentDetailsPage />} />
+{/* <Route path="agents/:id/details" element={<AgentDetailsPage />} /> */}
               <Route path="agents/:id/performance" element={<AgentPerformancePage />} />
               <Route path="agents/:id/edit" element={<EditAgentPage />} />
               <Route path="agents/create" element={<CreateAgentPage />} />
