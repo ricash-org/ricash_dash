@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react'
+// src/pages/Agencies.jsx
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Search, 
@@ -32,175 +33,14 @@ import {
 } from '@/components/ui/ricash-table'
 import { RicashTableActionsDropdown } from '@/components/ui/ricash-dropdown'
 
-// Import modals
-// import AgencyDetailsModal from '../components/Modals/AgencyDetailsModal'
-// import CreateAgencyModal from '../components/Modals/CreateAgencyModal'
+// Service API
+import { agenceService } from '@/services/agenceService'
 
-// Mock data
-const initialAgencies = [
-  {
-    id: 'AGE001',
-    nom: 'Ricash Dakar Centre',
-    code: 'DKR-CTR-001',
-    ville: 'Dakar',
-    quartier: 'Plateau',
-    adresse: '15 Avenue Georges Pompidou',
-    telephone: '+221 33 821 45 67',
-    email: 'dakar.centre@ricash.com',
-    responsable: {
-      nom: 'Amadou Diallo',
-      telephone: '+221 77 123 45 67',
-      email: 'amadou.diallo@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'principale',
-    dateOuverture: '2023-01-15',
-    nombreAgents: 12,
-    limiteJournaliere: 500000,
-    chiffreAffaires: 2500000,
-    commission: 2.5,
-    horaires: '08:00-18:00',
-    coordonnees: {
-      latitude: 14.6937,
-      longitude: -17.4441
-    }
-  },
-  {
-    id: 'AGE002',
-    nom: 'Ricash Touba',
-    code: 'TBA-001',
-    ville: 'Touba',
-    quartier: 'Centre',
-    adresse: 'Avenue Cheikh Ahmadou Bamba',
-    telephone: '+221 33 975 12 34',
-    email: 'touba@ricash.com',
-    responsable: {
-      nom: 'Fatou Ndiaye',
-      telephone: '+221 76 987 65 43',
-      email: 'fatou.ndiaye@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-03-20',
-    nombreAgents: 8,
-    limiteJournaliere: 300000,
-    chiffreAffaires: 1800000,
-    commission: 2.0,
-    horaires: '08:00-17:00',
-    coordonnees: {
-      latitude: 14.8606,
-      longitude: -15.8817
-    }
-  },
-  {
-    id: 'AGE003',
-    nom: 'Ricash Saint-Louis',
-    code: 'STL-001',
-    ville: 'Saint-Louis',
-    quartier: 'Sor',
-    adresse: 'Rue Abdoulaye Mar Diop',
-    telephone: '+221 33 961 78 90',
-    email: 'saintlouis@ricash.com',
-    responsable: {
-      nom: 'Ousmane Ba',
-      telephone: '+221 78 456 12 34',
-      email: 'ousmane.ba@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-05-10',
-    nombreAgents: 6,
-    limiteJournaliere: 200000,
-    chiffreAffaires: 1200000,
-    commission: 1.8,
-    horaires: '08:30-17:30',
-    coordonnees: {
-      latitude: 16.0395,
-      longitude: -16.4942
-    }
-  },
-  {
-    id: 'AGE004',
-    nom: 'Ricash Thiès',
-    code: 'THS-001',
-    ville: 'Thiès',
-    quartier: 'Centre-ville',
-    adresse: 'Avenue Léopold Sédar Senghor',
-    telephone: '+221 33 951 23 45',
-    email: 'thies@ricash.com',
-    responsable: {
-      nom: 'Aïssatou Sow',
-      telephone: '+221 77 654 32 10',
-      email: 'aissatou.sow@ricash.com'
-    },
-    statut: 'maintenance',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-02-28',
-    nombreAgents: 10,
-    limiteJournaliere: 400000,
-    chiffreAffaires: 2100000,
-    commission: 2.2,
-    horaires: '08:00-18:00',
-    coordonnees: {
-      latitude: 14.7886,
-      longitude: -16.9318
-    }
-  },
-  {
-    id: 'AGE005',
-    nom: 'Ricash Kaolack',
-    code: 'KLK-001',
-    ville: 'Kaolack',
-    quartier: 'Médina',
-    adresse: 'Avenue El Hadj Malick Sy',
-    telephone: '+221 33 941 56 78',
-    email: 'kaolack@ricash.com',
-    responsable: {
-      nom: 'Mamadou Thiam',
-      telephone: '+221 76 123 78 90',
-      email: 'mamadou.thiam@ricash.com'
-    },
-    statut: 'suspendue',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-06-15',
-    nombreAgents: 5,
-    limiteJournaliere: 150000,
-    chiffreAffaires: 800000,
-    commission: 1.5,
-    horaires: '09:00-17:00',
-    coordonnees: {
-      latitude: 14.1516,
-      longitude: -16.0734
-    }
-  }
-]
-
-const getStatusBadge = (statut) => {
-  switch (statut) {
-    case 'active':
-      return <RicashStatusBadge status="active">Active</RicashStatusBadge>
-    case 'maintenance':
-      return <RicashStatusBadge status="maintenance">Maintenance</RicashStatusBadge>
-    case 'suspendue':
-      return <RicashStatusBadge status="suspendue">Suspendue</RicashStatusBadge>
-    case 'fermee':
-      return <RicashStatusBadge status="fermee">Fermée</RicashStatusBadge>
-    default:
-      return <RicashStatusBadge status="unknown">Inconnu</RicashStatusBadge>
-  }
-}
-
-const getTypeAgenceBadge = (type) => {
-  switch (type) {
-    case 'principale':
-      return <RicashStatusBadge status="principale">Principale</RicashStatusBadge>
-    case 'secondaire':
-      return <RicashStatusBadge status="secondaire">Secondaire</RicashStatusBadge>
-    case 'partenaire':
-      return <RicashStatusBadge status="partenaire">Partenaire</RicashStatusBadge>
-    default:
-      return <RicashStatusBadge status="standard">Standard</RicashStatusBadge>
-  }
+// Fonctions utilitaires
+const getStatusBadge = (estActive) => {
+  return estActive 
+    ? <RicashStatusBadge status="active">Active</RicashStatusBadge>
+    : <RicashStatusBadge status="suspendue">Inactive</RicashStatusBadge>
 }
 
 const formatCurrency = (amount) => {
@@ -208,24 +48,60 @@ const formatCurrency = (amount) => {
     style: 'currency',
     currency: 'XOF',
     minimumFractionDigits: 0
-  }).format(amount)
+  }).format(amount || 0)
 }
 
 const Agencies = React.memo(() => {
   const navigate = useNavigate()
-  const [agencies, setAgencies] = useState(initialAgencies)
+  const [agencies, setAgencies] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [stats, setStats] = useState({
+    total: 0,
+    actives: 0,
+    inactives: 0,
+    soldeTotal: 0
+  })
   
   // Filters state
   const [filters, setFilters] = useState({
     search: '',
-    status: 'all',
-    type: 'all',
-    ville: 'all'
+    status: 'all'
   })
   
-  // Modal states - supprimés car convertis en pages
+  // Charger les données au montage du composant
+  useEffect(() => {
+    loadAgencies()
+  }, [])
 
+  // Charger les agences depuis l'API
+  const loadAgencies = async () => {
+    setIsLoading(true)
+    try {
+      const [agencesData, soldeTotal] = await Promise.all([
+        agenceService.getAllAgences(),
+        agenceService.getSoldeTotal()
+      ])
+      
+      setAgencies(agencesData)
+      
+      // Calculer les statistiques
+      const actives = agencesData.filter(agence => agence.estActive).length
+      const inactives = agencesData.filter(agence => !agence.estActive).length
+      
+      setStats({
+        total: agencesData.length,
+        actives,
+        inactives,
+        soldeTotal: soldeTotal || 0
+      })
+    } catch (error) {
+      console.error('Erreur lors du chargement des agences:', error)
+      // Optionnel: Afficher un message d'erreur à l'utilisateur
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
   // Handlers optimisés
   const updateFilters = useCallback((newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters }))
@@ -234,16 +110,12 @@ const Agencies = React.memo(() => {
   const resetFilters = useCallback(() => {
     setFilters({
       search: '',
-      status: 'all',
-      type: 'all',
-      ville: 'all'
+      status: 'all'
     })
   }, [])
   
   const handleRefresh = useCallback(async () => {
-    setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsLoading(false)
+    await loadAgencies()
   }, [])
 
   // Filtered agencies with memoization
@@ -251,29 +123,61 @@ const Agencies = React.memo(() => {
     return agencies.filter(agency => {
       const matchesSearch = !filters.search || 
         agency.nom.toLowerCase().includes(filters.search.toLowerCase()) ||
-        agency.ville.toLowerCase().includes(filters.search.toLowerCase()) ||
-        agency.quartier.toLowerCase().includes(filters.search.toLowerCase()) ||
-        agency.code.toLowerCase().includes(filters.search.toLowerCase()) ||
-        agency.responsable.nom.toLowerCase().includes(filters.search.toLowerCase())
+        (agency.adresse?.ville && agency.adresse.ville.toLowerCase().includes(filters.search.toLowerCase())) ||
+        (agency.agentNom && agency.agentNom.toLowerCase().includes(filters.search.toLowerCase()))
       
-      const matchesStatus = filters.status === 'all' || agency.statut === filters.status
-      const matchesType = filters.type === 'all' || agency.typeAgence === filters.type
-      const matchesVille = filters.ville === 'all' || agency.ville === filters.ville
+      const matchesStatus = filters.status === 'all' || 
+        (filters.status === 'active' && agency.estActive) ||
+        (filters.status === 'inactive' && !agency.estActive)
 
-    return matchesSearch && matchesStatus && matchesType && matchesVille
-  })
+      return matchesSearch && matchesStatus
+    })
   }, [agencies, filters])
 
-  const stats = {
-    total: agencies.length,
-    actives: agencies.filter(a => a.statut === 'active').length,
-    maintenance: agencies.filter(a => a.statut === 'maintenance').length,
-    suspendues: agencies.filter(a => a.statut === 'suspendue').length,
-    totalAgents: agencies.reduce((sum, a) => sum + a.nombreAgents, 0),
-    chiffreAffairesTotal: agencies.reduce((sum, a) => sum + a.chiffreAffaires, 0)
+  // Gestion du statut des agences
+  const handleToggleStatus = async (agency) => {
+    try {
+      const updatedAgency = await agenceService.toggleAgenceStatus(
+        agency.id, 
+        !agency.estActive
+      )
+      
+      // Mettre à jour la liste locale
+      setAgencies(prev => 
+        prev.map(a => a.id === agency.id ? updatedAgency : a)
+      )
+      
+      // Recharger les stats
+      const soldeTotal = await agenceService.getSoldeTotal()
+      setStats(prev => ({
+        ...prev,
+        soldeTotal,
+        actives: prev.actives + (updatedAgency.estActive ? 1 : -1),
+        inactives: prev.inactives + (updatedAgency.estActive ? -1 : 1)
+      }))
+      
+    } catch (error) {
+      console.error('Erreur lors du changement de statut:', error)
+    }
   }
 
-  // Static ville options to prevent DOM issues with dynamic SelectItems
+  const handleDeleteAgency = async (agencyId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette agence ? Cette action est irréversible.')) {
+      try {
+        // Note: Vous devrez ajouter un endpoint DELETE dans votre controller Spring Boot
+        // await agenceService.deleteAgence(agencyId)
+        // setAgencies(prev => prev.filter(agency => agency.id !== agencyId))
+        
+        // Pour l'instant, on désactive simplement
+        const agency = agencies.find(a => a.id === agencyId)
+        if (agency) {
+          await handleToggleStatus(agency)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+      }
+    }
+  }
 
   // Navigation handlers
   const handleViewDetails = (agency) => {
@@ -281,21 +185,7 @@ const Agencies = React.memo(() => {
   }
 
   const handleManageAgents = (agency) => {
-    navigate('/app/agents')
-  }
-
-  const handleSuspendAgency = (agency) => {
-    setAgencies(prev => prev.map(a => 
-      a.id === agency.id 
-        ? { ...a, statut: a.statut === 'suspendue' ? 'active' : 'suspendue' }
-        : a
-    ))
-  }
-
-  const handleDeleteAgency = (agencyId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette agence ? Cette action est irréversible.')) {
-      setAgencies(prev => prev.filter(agency => agency.id !== agencyId))
-    }
+    navigate('/app/agents', { state: { agenceId: agency.id } })
   }
 
   return (
@@ -331,7 +221,7 @@ const Agencies = React.memo(() => {
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <RicashStatCard
           icon={Building2}
           title="Total agences"
@@ -345,28 +235,16 @@ const Agencies = React.memo(() => {
           description="Nombre d'agences en fonctionnement"
         />
         <RicashStatCard
-          icon={Clock}
-          title="En maintenance"
-          value={stats.maintenance}
-          description="Nombre d'agences en maintenance"
-        />
-        <RicashStatCard
           icon={XCircle}
-          title="Suspendues"
-          value={stats.suspendues}
+          title="Agences inactives"
+          value={stats.inactives}
           description="Nombre d'agences suspendues"
         />
         <RicashStatCard
-          icon={Users}
-          title="Total agents"
-          value={stats.totalAgents}
-          description="Nombre total d'agents dans toutes les agences"
-        />
-        <RicashStatCard
           icon={TrendingUp}
-          title="CA Total"
-          value={formatCurrency(stats.chiffreAffairesTotal)}
-          description="Chiffre d'affaires total de toutes les agences"
+          title="Solde Total"
+          value={formatCurrency(stats.soldeTotal)}
+          description="Solde total de toutes les agences"
         />
       </div>
 
@@ -376,7 +254,7 @@ const Agencies = React.memo(() => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <RicashInput
-              placeholder="Rechercher par nom, ville, code ou responsable..."
+              placeholder="Rechercher par nom, ville ou responsable..."
               value={filters.search}
               onChange={(e) => updateFilters({ search: e.target.value })}
               className="pl-10"
@@ -390,36 +268,7 @@ const Agencies = React.memo(() => {
               options={[
                 { value: 'all', label: 'Tous les statuts' },
                 { value: 'active', label: 'Active' },
-                { value: 'maintenance', label: 'Maintenance' },
-                { value: 'suspendue', label: 'Suspendue' },
-                { value: 'fermee', label: 'Fermée' }
-              ]}
-              triggerClassName="w-[140px]"
-            />
-            <RicashSelect
-              value={filters.type}
-              onValueChange={(value) => updateFilters({ type: value })}
-              placeholder="Type"
-              options={[
-                { value: 'all', label: 'Tous les types' },
-                { value: 'principale', label: 'Principale' },
-                { value: 'secondaire', label: 'Secondaire' },
-                { value: 'partenaire', label: 'Partenaire' }
-              ]}
-              triggerClassName="w-[140px]"
-            />
-            <RicashSelect
-              value={filters.ville}
-              onValueChange={(value) => updateFilters({ ville: value })}
-              placeholder="Ville"
-              options={[
-                { value: 'all', label: 'Toutes les villes' },
-                { value: 'Dakar', label: 'Dakar' },
-                { value: 'Thiès', label: 'Thiès' },
-                { value: 'Saint-Louis', label: 'Saint-Louis' },
-                { value: 'Touba', label: 'Touba' },
-                { value: 'Kaolack', label: 'Kaolack' },
-                { value: 'Tambacounda', label: 'Tambacounda' }
+                { value: 'inactive', label: 'Inactive' }
               ]}
               triggerClassName="w-[140px]"
             />
@@ -430,64 +279,61 @@ const Agencies = React.memo(() => {
           </div>
         </div>
 
-        <RicashTable>
-          <RicashTableHeader>
-            <RicashTableRow>
-              <RicashTableCell>Agence</RicashTableCell>
-              <RicashTableCell>Code</RicashTableCell>
-              <RicashTableCell>Localisation</RicashTableCell>
-              <RicashTableCell>Responsable</RicashTableCell>
-              <RicashTableCell>Type</RicashTableCell>
-              <RicashTableCell>Statut</RicashTableCell>
-              <RicashTableCell>Agents</RicashTableCell>
-              <RicashTableCell>CA Mensuel</RicashTableCell>
-              <RicashTableCell>Actions</RicashTableCell>
-            </RicashTableRow>
-          </RicashTableHeader>
-          <RicashTableBody>
-            {filteredAgencies.map((agency) => (
-              <RicashTableRow key={agency.id}>
-                <RicashTableCell>
-                  <div>
-                    <div className="font-medium">{agency.nom}</div>
-                    <div className="flex items-center text-sm text-muted-foreground mt-1">
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Chargement des agences...</p>
+          </div>
+        ) : (
+          <RicashTable>
+            <RicashTableHeader>
+              <RicashTableRow>
+                <RicashTableCell>Agence</RicashTableCell>
+                <RicashTableCell>Localisation</RicashTableCell>
+                <RicashTableCell>Responsable</RicashTableCell>
+                <RicashTableCell>Téléphone</RicashTableCell>
+                <RicashTableCell>Statut</RicashTableCell>
+                <RicashTableCell>Solde</RicashTableCell>
+                <RicashTableCell>Actions</RicashTableCell>
+              </RicashTableRow>
+            </RicashTableHeader>
+            <RicashTableBody>
+              {filteredAgencies.map((agency) => (
+                <RicashTableRow key={agency.id}>
+                  <RicashTableCell>
+                    <div>
+                      <div className="font-medium">{agency.nom}</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        ID: {agency.id}
+                      </div>
+                    </div>
+                  </RicashTableCell>
+                  <RicashTableCell>
+                    <div>
+                      <div className="flex items-center">
+                        <MapPin className="mr-1 h-3 w-3" />
+                        <span className="font-medium">{agency.adresse?.ville}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {agency.adresse?.ligne1}
+                      </div>
+                    </div>
+                  </RicashTableCell>
+                  <RicashTableCell>
+                    <div>
+                      <div className="font-medium">{agency.agentNom}</div>
+                    </div>
+                  </RicashTableCell>
+                  <RicashTableCell>
+                    <div className="flex items-center">
                       <Phone className="mr-1 h-3 w-3" />
                       {agency.telephone}
                     </div>
-                  </div>
-                </RicashTableCell>
-                <RicashTableCell>
-                  <div className="font-mono text-sm">{agency.code}</div>
-                </RicashTableCell>
-                <RicashTableCell>
-                  <div>
-                    <div className="flex items-center">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      <span className="font-medium">{agency.ville}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">{agency.quartier}</div>
-                  </div>
-                </RicashTableCell>
-                <RicashTableCell>
-                  <div>
-                    <div className="font-medium">{agency.responsable.nom}</div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Mail className="mr-1 h-3 w-3" />
-                      {agency.responsable.email}
-                    </div>
-                  </div>
-                </RicashTableCell>
-                <RicashTableCell>{getTypeAgenceBadge(agency.typeAgence)}</RicashTableCell>
-                <RicashTableCell>{getStatusBadge(agency.statut)}</RicashTableCell>
-                <RicashTableCell>
-                  <div className="text-center">
-                    <span className="font-medium">{agency.nombreAgents}</span>
-                  </div>
-                </RicashTableCell>
-                <RicashTableCell>
-                  <div className="font-medium">{formatCurrency(agency.chiffreAffaires)}</div>
-                </RicashTableCell>
-                                  <RicashTableCell>
+                  </RicashTableCell>
+                  <RicashTableCell>{getStatusBadge(agency.estActive)}</RicashTableCell>
+                  <RicashTableCell>
+                    <div className="font-medium">{formatCurrency(agency.solde)}</div>
+                  </RicashTableCell>
+                  <RicashTableCell>
                     <RicashTableActionsDropdown
                       actions={[
                         {
@@ -503,32 +349,28 @@ const Agencies = React.memo(() => {
                           variant: "default"
                         },
                         {
-                          label: agency.statut !== 'suspendue' ? "Suspendre" : "Réactiver",
-                          icon: agency.statut !== 'suspendue' ? "🚫" : "✅",
-                          onClick: () => handleSuspendAgency(agency),
-                          variant: agency.statut !== 'suspendue' ? "warning" : "success"
-                        },
-                        {
-                          label: "Supprimer",
-                          icon: "🗑️",
-                          onClick: () => handleDeleteAgency(agency.id),
-                          variant: "danger"
+                          label: agency.estActive ? "Désactiver" : "Activer",
+                          icon: agency.estActive ? "🚫" : "✅",
+                          onClick: () => handleToggleStatus(agency),
+                          variant: agency.estActive ? "warning" : "success"
                         }
                       ]}
                     />
                   </RicashTableCell>
-              </RicashTableRow>
-            ))}
-          </RicashTableBody>
-        </RicashTable>
+                </RicashTableRow>
+              ))}
+            </RicashTableBody>
+          </RicashTable>
+        )}
 
-        {filteredAgencies.length === 0 && (
+        {!isLoading && filteredAgencies.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Aucune agence trouvée avec ces critères.</p>
+            <p className="text-muted-foreground">
+              {agencies.length === 0 ? 'Aucune agence trouvée.' : 'Aucune agence trouvée avec ces critères.'}
+            </p>
           </div>
         )}
       </RicashTableCard>
-
     </div>
   )
 })

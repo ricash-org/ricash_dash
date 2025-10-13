@@ -1,4 +1,5 @@
-import React from 'react'
+// src/pages/AgencyDetails.jsx
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Building2, MapPin, Phone, Mail, Users, DollarSign, TrendingUp, Clock, Edit, MoreVertical } from 'lucide-react'
 import { RicashButton } from '@/components/ui/ricash-button'
@@ -7,202 +8,13 @@ import { RicashStatusBadge } from '@/components/ui/ricash-table'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-// Mock data pour les détails d'agence
-const mockAgencyDetails = {
-  AGE001: {
-    id: 'AGE001',
-    nom: 'Ricash Dakar Centre',
-    code: 'DKR-CTR-001',
-    ville: 'Dakar',
-    quartier: 'Plateau',
-    adresse: '15 Avenue Georges Pompidou',
-    telephone: '+221 33 821 45 67',
-    email: 'dakar.centre@ricash.com',
-    responsable: {
-      nom: 'Amadou Diallo',
-      telephone: '+221 77 123 45 67',
-      email: 'amadou.diallo@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'principale',
-    dateOuverture: '2023-01-15',
-    nombreAgents: 12,
-    limiteJournaliere: 500000,
-    chiffreAffaires: 2500000,
-    commission: 2.5,
-    horaires: '08:00-18:00',
-    coordonnees: {
-      latitude: 14.6937,
-      longitude: -17.4441
-    },
-    performance: {
-      transactionsJour: 145,
-      transactionsMois: 4350,
-      chiffreAffairesMois: 2500000,
-      tauxReussite: 98.5,
-      satisfactionClient: 4.7
-    }
-  },
-  AGE002: {
-    id: 'AGE002',
-    nom: 'Ricash Touba',
-    code: 'TBA-001',
-    ville: 'Touba',
-    quartier: 'Centre',
-    adresse: 'Avenue Cheikh Ahmadou Bamba',
-    telephone: '+221 33 975 12 34',
-    email: 'touba@ricash.com',
-    responsable: {
-      nom: 'Fatou Ndiaye',
-      telephone: '+221 76 987 65 43',
-      email: 'fatou.ndiaye@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-03-20',
-    nombreAgents: 8,
-    limiteJournaliere: 300000,
-    chiffreAffaires: 1800000,
-    commission: 2.0,
-    horaires: '08:00-17:00',
-    coordonnees: {
-      latitude: 14.8606,
-      longitude: -15.8817
-    },
-    performance: {
-      transactionsJour: 95,
-      transactionsMois: 2850,
-      chiffreAffairesMois: 1800000,
-      tauxReussite: 97.2,
-      satisfactionClient: 4.5
-    }
-  },
-  AGE003: {
-    id: 'AGE003',
-    nom: 'Ricash Saint-Louis',
-    code: 'STL-001',
-    ville: 'Saint-Louis',
-    quartier: 'Sor',
-    adresse: 'Rue Abdoulaye Mar Diop',
-    telephone: '+221 33 961 78 90',
-    email: 'saintlouis@ricash.com',
-    responsable: {
-      nom: 'Ousmane Ba',
-      telephone: '+221 78 456 12 34',
-      email: 'ousmane.ba@ricash.com'
-    },
-    statut: 'active',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-05-10',
-    nombreAgents: 6,
-    limiteJournaliere: 200000,
-    chiffreAffaires: 1200000,
-    commission: 1.8,
-    horaires: '08:30-17:30',
-    coordonnees: {
-      latitude: 16.0395,
-      longitude: -16.4942
-    },
-    performance: {
-      transactionsJour: 65,
-      transactionsMois: 1950,
-      chiffreAffairesMois: 1200000,
-      tauxReussite: 96.8,
-      satisfactionClient: 4.3
-    }
-  },
-  AGE004: {
-    id: 'AGE004',
-    nom: 'Ricash Thiès',
-    code: 'THS-001',
-    ville: 'Thiès',
-    quartier: 'Centre-ville',
-    adresse: 'Avenue Léopold Sédar Senghor',
-    telephone: '+221 33 951 23 45',
-    email: 'thies@ricash.com',
-    responsable: {
-      nom: 'Aïssatou Sow',
-      telephone: '+221 77 654 32 10',
-      email: 'aissatou.sow@ricash.com'
-    },
-    statut: 'maintenance',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-02-28',
-    nombreAgents: 10,
-    limiteJournaliere: 400000,
-    chiffreAffaires: 2100000,
-    commission: 2.2,
-    horaires: '08:00-18:00',
-    coordonnees: {
-      latitude: 14.7886,
-      longitude: -16.9318
-    },
-    performance: {
-      transactionsJour: 0,
-      transactionsMois: 0,
-      chiffreAffairesMois: 0,
-      tauxReussite: 0,
-      satisfactionClient: 0
-    }
-  },
-  AGE005: {
-    id: 'AGE005',
-    nom: 'Ricash Kaolack',
-    code: 'KLK-001',
-    ville: 'Kaolack',
-    quartier: 'Médina',
-    adresse: 'Avenue El Hadj Malick Sy',
-    telephone: '+221 33 941 56 78',
-    email: 'kaolack@ricash.com',
-    responsable: {
-      nom: 'Mamadou Thiam',
-      telephone: '+221 76 123 78 90',
-      email: 'mamadou.thiam@ricash.com'
-    },
-    statut: 'suspendue',
-    typeAgence: 'secondaire',
-    dateOuverture: '2023-06-15',
-    nombreAgents: 5,
-    limiteJournaliere: 150000,
-    chiffreAffaires: 800000,
-    commission: 1.5,
-    horaires: '09:00-17:00',
-    coordonnees: {
-      latitude: 14.1516,
-      longitude: -16.0734
-    },
-    performance: {
-      transactionsJour: 0,
-      transactionsMois: 0,
-      chiffreAffairesMois: 0,
-      tauxReussite: 0,
-      satisfactionClient: 0
-    }
-  }
-}
+// Service API
+import { agenceService } from '@/services/agenceService'
 
-const getStatusBadge = (statut) => {
-  switch (statut) {
-    case 'active':
-      return <RicashStatusBadge variant="success">Active</RicashStatusBadge>
-    case 'maintenance':
-      return <RicashStatusBadge variant="warning">Maintenance</RicashStatusBadge>
-    case 'suspendue':
-      return <RicashStatusBadge variant="danger">Suspendue</RicashStatusBadge>
-    default:
-      return <RicashStatusBadge variant="secondary">{statut}</RicashStatusBadge>
-  }
-}
-
-const getTypeAgenceBadge = (type) => {
-  switch (type) {
-    case 'principale':
-      return <RicashStatusBadge variant="primary">Principale</RicashStatusBadge>
-    case 'secondaire':
-      return <RicashStatusBadge variant="secondary">Secondaire</RicashStatusBadge>
-    default:
-      return <RicashStatusBadge variant="outline">{type}</RicashStatusBadge>
-  }
+const getStatusBadge = (estActive) => {
+  return estActive 
+    ? <RicashStatusBadge variant="success">Active</RicashStatusBadge>
+    : <RicashStatusBadge variant="danger">Inactive</RicashStatusBadge>
 }
 
 const formatCurrency = (amount) => {
@@ -210,22 +22,64 @@ const formatCurrency = (amount) => {
     style: 'currency',
     currency: 'XOF',
     minimumFractionDigits: 0
-  }).format(amount)
-}
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  }).format(amount || 0)
 }
 
 export default function AgencyDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [agency, setAgency] = useState(null)
+  const [loading, setLoading] = useState(true)
   
-  const agency = mockAgencyDetails[id]
+  useEffect(() => {
+    loadAgencyDetails()
+  }, [id])
+
+  const loadAgencyDetails = async () => {
+    try {
+      setLoading(true)
+      // Dans un cas réel, vous auriez un endpoint pour récupérer une agence par ID
+      const agences = await agenceService.getAllAgences()
+      const foundAgency = agences.find(a => a.id === parseInt(id))
+      setAgency(foundAgency)
+    } catch (error) {
+      console.error('Erreur lors du chargement des détails:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    try {
+      const updatedAgency = await agenceService.toggleAgenceStatus(
+        agency.id, 
+        !agency.estActive
+      )
+      setAgency(updatedAgency)
+    } catch (error) {
+      console.error('Erreur lors du changement de statut:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <RicashButton
+            variant="outline"
+            onClick={() => navigate('/app/agencies')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour aux agences
+          </RicashButton>
+        </div>
+        <div className="text-center py-12">
+          <p>Chargement des détails de l'agence...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!agency) {
     return (
@@ -256,10 +110,6 @@ export default function AgencyDetailsPage() {
     navigate(`/app/agencies/${agency.id}/agents`)
   }
 
-  const handleViewReports = () => {
-    navigate(`/app/reports?agency=${agency.id}`)
-  }
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -278,7 +128,7 @@ export default function AgencyDetailsPage() {
               <Building2 className="h-8 w-8 text-blue-600" />
               {agency.nom}
             </h1>
-            <p className="text-gray-600 mt-1">Code: {agency.code}</p>
+            <p className="text-gray-600 mt-1">ID: {agency.id}</p>
           </div>
         </div>
         
@@ -289,7 +139,7 @@ export default function AgencyDetailsPage() {
             className="flex items-center gap-2"
           >
             <Edit className="h-4 w-4" />
-            Modificateur
+            Modifier
           </RicashButton>
           
           <DropdownMenu>
@@ -304,19 +154,27 @@ export default function AgencyDetailsPage() {
                 <Users className="mr-2 h-4 w-4" />
                 Gérer les agents
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleViewReports}>
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Voir les rapports
+              <DropdownMenuItem onClick={handleToggleStatus}>
+                {agency.estActive ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Désactiver l'agence
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    Activer l'agence
+                  </>
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      {/* Status and Type */}
+      {/* Status */}
       <div className="flex gap-2">
-        {getStatusBadge(agency.statut)}
-        {getTypeAgenceBadge(agency.typeAgence)}
+        {getStatusBadge(agency.estActive)}
       </div>
 
       {/* Main Content Grid */}
@@ -336,8 +194,10 @@ export default function AgencyDetailsPage() {
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="text-sm text-gray-600">Adresse:</span>
                   </div>
-                  <p className="text-gray-900 font-medium">{agency.adresse}</p>
-                  <p className="text-gray-600">{agency.quartier}, {agency.ville}</p>
+                  <p className="text-gray-900 font-medium">{agency.adresse?.ligne1}</p>
+                  <p className="text-gray-600">{agency.adresse?.ligne2}</p>
+                  <p className="text-gray-600">{agency.adresse?.ville}, {agency.adresse?.pays}</p>
+                  <p className="text-gray-600">Code postal: {agency.adresse?.codePostal}</p>
                 </div>
                 
                 <div className="space-y-3">
@@ -346,22 +206,6 @@ export default function AgencyDetailsPage() {
                     <span className="text-sm text-gray-600">Téléphone:</span>
                   </div>
                   <p className="text-gray-900 font-medium">{agency.telephone}</p>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Email:</span>
-                  </div>
-                  <p className="text-gray-900 font-medium">{agency.email}</p>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Horaires:</span>
-                  </div>
-                  <p className="text-gray-900 font-medium">{agency.horaires}</p>
                 </div>
               </div>
             </div>
@@ -374,46 +218,10 @@ export default function AgencyDetailsPage() {
                 <Users className="h-5 w-5" />
                 Responsable de l'agence
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Nom</p>
-                  <p className="text-gray-900 font-medium">{agency.responsable.nom}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Téléphone</p>
-                  <p className="text-gray-900 font-medium">{agency.responsable.telephone}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="text-gray-900 font-medium">{agency.responsable.email}</p>
-                </div>
-              </div>
-            </div>
-          </RicashCard>
-
-          {/* Performance Metrics */}
-          <RicashCard>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Performance
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{agency.performance.transactionsJour}</p>
-                  <p className="text-sm text-gray-600">Transactions/jour</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600">{agency.performance.transactionsMois}</p>
-                  <p className="text-sm text-gray-600">Transactions/mois</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-600">{agency.performance.tauxReussite}%</p>
-                  <p className="text-sm text-gray-600">Taux de réussite</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-orange-600">{agency.performance.satisfactionClient}/5</p>
-                  <p className="text-sm text-gray-600">Satisfaction</p>
+                  <p className="text-gray-900 font-medium">{agency.agentNom}</p>
                 </div>
               </div>
             </div>
@@ -431,21 +239,15 @@ export default function AgencyDetailsPage() {
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Chiffre d'affaires mensuel</span>
+                  <span className="text-gray-600">Solde actuel</span>
                   <span className="font-semibold text-green-600">
-                    {formatCurrency(agency.chiffreAffaires)}
+                    {formatCurrency(agency.solde)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Limite journalière</span>
-                  <span className="font-semibold text-blue-600">
-                    {formatCurrency(agency.limiteJournaliere)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Commission</span>
-                  <span className="font-semibold text-purple-600">
-                    {agency.commission}%
+                  <span className="text-gray-600">Statut</span>
+                  <span className={`font-semibold ${agency.estActive ? 'text-green-600' : 'text-red-600'}`}>
+                    {agency.estActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </div>
@@ -461,40 +263,20 @@ export default function AgencyDetailsPage() {
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Date d'ouverture</span>
-                  <span className="font-medium">{formatDate(agency.dateOuverture)}</span>
+                  <span className="text-gray-600">ID Agence</span>
+                  <span className="font-medium">{agency.id}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Nombre d'agents</span>
-                  <span className="font-medium">{agency.nombreAgents}</span>
+                  <span className="text-gray-600">Nom</span>
+                  <span className="font-medium">{agency.nom}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Type d'agence</span>
-                  <span className="font-medium capitalize">{agency.typeAgence}</span>
+                  <span className="text-gray-600">Ville</span>
+                  <span className="font-medium">{agency.adresse?.ville}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Statut</span>
-                  <span className="font-medium capitalize">{agency.statut}</span>
-                </div>
-              </div>
-            </div>
-          </RicashCard>
-
-          {/* Coordinates */}
-          <RicashCard>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Coordonnées GPS
-              </h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Latitude</span>
-                  <span className="font-mono text-sm">{agency.coordonnees.latitude}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Longitude</span>
-                  <span className="font-mono text-sm">{agency.coordonnees.longitude}</span>
+                  <span className="text-gray-600">Pays</span>
+                  <span className="font-medium">{agency.adresse?.pays}</span>
                 </div>
               </div>
             </div>

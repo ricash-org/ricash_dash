@@ -31,7 +31,7 @@ api.interceptors.response.use(
       console.error('🔐 Token expiré ou invalide');
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('refreshToken');
-      localStorage.removeItem('ricash_user');
+      localStorage.removeItem('ricash_agent');
       window.location.href = '/login';
     }
     return Promise.reject(error);
