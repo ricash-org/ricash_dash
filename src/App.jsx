@@ -68,18 +68,18 @@ function App() {
               <Route path="users/kyc/:id" element={<KycValidationPage />} />
               <Route path="users/:id/status" element={<UserStatusPage />} />
               <Route path="users/:id/block" element={<BlockUnblockPage />} />
-              <Route path="transfers" element={<Transfers />} />
-              <Route path="transfers/pending" element={<Transfers />} />
-              <Route path="transfers/suspicious" element={<Transfers />} />
-              <Route path="transfers/create" element={<CreateTransferPage />} />
-              <Route path="transfers/:id/details" element={<TransferDetailsPage />} />
+             <Route path="transfers/create" element={<CreateTransferPage />} />
+<Route path="transfers/pending" element={<Transfers />} />
+<Route path="transfers/suspicious" element={<Transfers />} />
+<Route path="transfers/:id/details" element={<TransferDetailsPage />} />
+<Route path="transfers" element={<Transfers />} />
+
               <Route path="agencies" element={<Agencies />} />
               <Route path="agencies/:id/details" element={<AgencyDetailsPage />} />
               <Route path="agencies/:id/edit" element={<EditAgencyPage />} />
               <Route path="agencies/create" element={<CreateAgencyPage />} />
               <Route path="agents" element={<Agents />} />
               <Route path="agents/:id" element={<AgentDetailsPage />} />
-{/* <Route path="agents/:id/details" element={<AgentDetailsPage />} /> */}
               <Route path="agents/:id/performance" element={<AgentPerformancePage />} />
               <Route path="agents/:id/edit" element={<EditAgentPage />} />
               <Route path="agents/create" element={<CreateAgentPage />} />
