@@ -187,6 +187,7 @@ export default function Transactions() {
   const navigate = useNavigate()
   const [transactions, setTransactions] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [userData, setUserData] = useState(null)
   const [stats, setStats] = useState({
     total: 0,
     enAttente: 0,
@@ -207,50 +208,140 @@ export default function Transactions() {
   // Charger les données au montage du composant
   useEffect(() => {
     console.log('🚀 Composant Transactions monté, chargement des données...');
+    loadUserData();
     loadTransactions()
   }, [])
 
-  // Charger les transactions depuis l'API
-  const loadTransactions = async () => {
-    setIsLoading(true)
-    try {
-      console.log('📡 Début du chargement des transactions...');
-      let transactionsData = []
-      
-      // Adapter le chargement selon la route
-      if (location.pathname.includes('/pending')) {
-        console.log('🔄 Chargement des transactions en attente...');
-        transactionsData = await transactionService.getTransactionsByStatus('EN_ATTENTE')
-      } else if (location.pathname.includes('/suspicious')) {
-        console.log('🔄 Chargement de toutes les transactions (filtrage suspect plus tard)...');
-        transactionsData = await transactionService.getAllTransactions()
-      } else {
-        console.log('🔄 Chargement de toutes les transactions...');
-        transactionsData = await transactionService.getAllTransactions()
+  // src/pages/Transactions.jsx
+
+// Charger les données de l'utilisateur
+const loadUserData = () => {
+  try {
+    // Essayer plusieurs sources
+    const agentData = localStorage.getItem('ricash_agent');
+    const userData = localStorage.getItem('ricash_user');
+    const tokenData = sessionStorage.getItem('userData');
+    
+    console.log('🔍 Recherche des données utilisateur dans le composant:');
+    console.log('   - ricash_agent:', agentData);
+    console.log('   - ricash_user:', userData);
+    console.log('   - userData:', tokenData);
+    
+    let userDataToUse = null;
+    
+    // Priorité 1: ricash_agent
+    if (agentData) {
+      userDataToUse = JSON.parse(agentData);
+    } 
+    // Priorité 2: ricash_user
+    else if (userData) {
+      userDataToUse = JSON.parse(userData);
+    }
+    // Priorité 3: userData (sessionStorage)
+    else if (tokenData) {
+      userDataToUse = JSON.parse(tokenData);
+    }
+    
+    if (userDataToUse) {
+      // Normaliser les rôles
+      let normalizedRole = userDataToUse.role;
+      if (normalizedRole === 'ROLE_ADMIN' || normalizedRole === 'ADMIN') {
+        normalizedRole = 'ADMIN';
+      } else if (normalizedRole === 'ROLE_AGENT' || normalizedRole === 'AGENT') {
+        normalizedRole = 'AGENT';
       }
       
-      console.log('✅ Données reçues:', transactionsData);
-      setTransactions(transactionsData || [])
-      calculateStats(transactionsData || [])
-      toast.success(`${transactionsData?.length || 0} transactions chargées`)
-    } catch (error) {
-      console.error('❌ Erreur lors du chargement des transactions:', error)
-      toast.error('Erreur lors du chargement des transactions')
-      setTransactions([])
-      setStats({
-        total: 0,
-        enAttente: 0,
-        completees: 0,
-        enCours: 0,
-        annulees: 0,
-        rejetees: 0,
-        montantTotal: 0,
-        fraisTotal: 0
-      })
-    } finally {
-      setIsLoading(false)
+      const normalizedData = {
+        ...userDataToUse,
+        role: normalizedRole
+      };
+      
+      setUserData(normalizedData);
+      console.log('👤 Données utilisateur chargées et normalisées:', normalizedData);
+      return normalizedData;
+    } else {
+      console.warn('⚠️ Aucune donnée utilisateur trouvée dans aucune source');
+      const fallbackData = { role: 'AGENT', id: null };
+      setUserData(fallbackData);
+      return fallbackData;
     }
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement des données utilisateur:', error);
+    const fallbackData = { role: 'AGENT', id: null };
+    setUserData(fallbackData);
+    return fallbackData;
   }
+}
+
+// Dans loadTransactions, améliorer la récupération des données
+const loadTransactions = async () => {
+  setIsLoading(true)
+  try {
+    console.log('📡 Début du chargement des transactions...');
+    
+    // Charger les données utilisateur
+    const currentUserData = loadUserData();
+    
+    // DÉTERMINATION DU RÔLE
+    const isAdmin = currentUserData?.role === 'ADMIN';
+    const isAgent = currentUserData?.role === 'AGENT';
+    
+    console.log('👤 Utilisateur connecté:', { 
+      id: currentUserData?.id, 
+      role: currentUserData?.role, 
+      isAdmin,
+      isAgent
+    });
+
+    let transactionsData = []
+    
+    // Adapter le chargement selon la route
+    if (location.pathname.includes('/pending')) {
+      console.log('🔄 Chargement des transactions en attente...');
+      transactionsData = await transactionService.getTransactionsByStatus('EN_ATTENTE')
+    } else if (location.pathname.includes('/suspicious')) {
+      console.log('🔄 Chargement des transactions suspectes...');
+      transactionsData = await transactionService.getAllTransactions()
+    } else {
+      console.log('🔄 Chargement des transactions selon le rôle...');
+      transactionsData = await transactionService.getAllTransactions()
+    }
+    
+    console.log('✅ Données reçues:', transactionsData);
+    setTransactions(transactionsData || [])
+    calculateStats(transactionsData || [])
+    
+    // Message de succès adapté au rôle
+    const successMessage = isAdmin 
+      ? `${transactionsData?.length || 0} transactions chargées` 
+      : `${transactionsData?.length || 0} de vos transactions chargées`;
+    
+    toast.success(successMessage)
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement des transactions:', error)
+    
+    // Message d'erreur plus spécifique
+    if (error.response?.status === 500) {
+      toast.error('Erreur serveur lors du chargement des transactions');
+    } else {
+      toast.error('Erreur lors du chargement des transactions')
+    }
+    
+    setTransactions([])
+    setStats({
+      total: 0,
+      enAttente: 0,
+      completees: 0,
+      enCours: 0,
+      annulees: 0,
+      rejetees: 0,
+      montantTotal: 0,
+      fraisTotal: 0
+    })
+  } finally {
+    setIsLoading(false)
+  }
+}
 
   // Calculer les statistiques
   const calculateStats = (transactionsData) => {
@@ -376,8 +467,7 @@ export default function Transactions() {
 
   // Navigation handlers
   const handleViewDetails = (transaction) => {
-  navigate(`/app/transfers/${transaction.id}/details`)
-
+    navigate(`/app/transfers/${transaction.id}/details`)
   }
 
   const handleCreateTransfer = () => {
@@ -422,13 +512,22 @@ export default function Transactions() {
     toast.success('Export des transactions téléchargé avec succès!')
   }
 
-  // Adapter le contenu selon la route
+  // Adapter le contenu selon la route et le rôle
   const getPageContent = () => {
+    const currentUserData = userData || JSON.parse(localStorage.getItem('ricash_agent') || '{}');
+    const isAdmin = currentUserData.role === 'ADMIN';
+    
+    const baseDescription = isAdmin 
+      ? `Supervisez toutes les transactions de transfert d'argent (${filteredTransactions.length} transaction(s))`
+      : `Gérez vos transactions de transfert d'argent (${filteredTransactions.length} transaction(s))`;
+
     switch (location.pathname) {
       case '/app/transactions/pending':
         return {
-          title: 'Transactions en attente',
-          description: 'Validez les transactions nécessitant une approbation'
+          title: isAdmin ? 'Transactions en attente' : 'Mes transactions en attente',
+          description: isAdmin 
+            ? 'Validez les transactions nécessitant une approbation' 
+            : 'Vos transactions en attente de traitement'
         }
       case '/app/transactions/suspicious':
         return {
@@ -437,16 +536,20 @@ export default function Transactions() {
         }
       default:
         return {
-          title: 'Gestion des transactions',
-          description: `Supervisez et validez les transactions de transfert d'argent (${filteredTransactions.length} transaction(s))`
+          title: isAdmin ? 'Gestion des transactions' : 'Mes transactions',
+          description: baseDescription
         }
     }
   }
 
   const pageContent = getPageContent()
+  const currentUserData = userData || JSON.parse(localStorage.getItem('ricash_agent') || '{}');
+  const isAdmin = currentUserData.role === 'ADMIN';
 
   console.log('🎯 État actuel:', {
     isLoading,
+    userData: currentUserData,
+    isAdmin,
     transactionsCount: transactions?.length,
     filteredCount: filteredTransactions.length,
     filters,
@@ -460,6 +563,21 @@ export default function Transactions() {
         <div>
           <h1 className="text-3xl font-bold text-[#29475B]">{pageContent.title}</h1>
           <p className="text-[#376470] mt-1">{pageContent.description}</p>
+          {/* Indicateur de rôle */}
+          <div className="flex items-center gap-2 mt-2">
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              isAdmin 
+                ? 'bg-purple-100 text-purple-800' 
+                : 'bg-blue-100 text-blue-800'
+            }`}>
+              {isAdmin ? '👑 Administrateur' : '👤 Agent'}
+            </span>
+            {!isAdmin && currentUserData.id && (
+              <span className="text-xs text-gray-600">
+                ID: {currentUserData.id}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           <RicashButton

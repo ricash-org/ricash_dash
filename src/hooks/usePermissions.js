@@ -14,7 +14,7 @@ export function usePermissions() {
         'Agents', 'Paramètres', 'Rapports', 'Sécurité'
       ],
       'AGENT': [
-        'Dashboard', 'Transferts', 'Paramètres', 'Agences'
+        'Dashboard', 'Transferts', 'Paramètres', 'Agences', 
       ],
       'USER': [
         'Dashboard', 'Transferts', 'Paramètres'
