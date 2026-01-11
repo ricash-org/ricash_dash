@@ -46,6 +46,15 @@ import {
   AreaChart
 } from 'recharts'
 
+// Palette de couleurs Ricash officielle
+const RICASH_COLORS = {
+  turquoise: '#2B8286',
+  bleuVert: '#376470',
+  bleuFonce: '#29475B',
+  dore: '#B19068',
+  blancCasse: '#F4F2EE'
+}
+
 // Mock data for reports
 const monthlyData = [
   { month: 'Jan', utilisateurs: 2400, transferts: 4800, volume: 980000, commissions: 12400 },
