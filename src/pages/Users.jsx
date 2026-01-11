@@ -32,6 +32,15 @@ import { RicashStatusBadge } from '@/components/ui/ricash-table'
 import { RicashTable, RicashTableHeader, RicashTableBody, RicashTableRow, RicashTableCell } from '@/components/ui/ricash-table'
 import { RicashDropdownMenu, RicashDropdownItem, RicashDropdownSeparator } from '@/components/ui/ricash-dropdown'
 
+// Palette de couleurs Ricash officielle
+const RICASH_COLORS = {
+  turquoise: '#2B8286',
+  bleuVert: '#376470',
+  bleuFonce: '#29475B',
+  dore: '#B19068',
+  blancCasse: '#F4F2EE'
+}
+
 // Mock data étendu
 const mockUsers = [
   {

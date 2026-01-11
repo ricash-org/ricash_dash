@@ -53,6 +53,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 
+// Palette de couleurs Ricash officielle
+const RICASH_COLORS = {
+  turquoise: '#2B8286',
+  bleuVert: '#376470',
+  bleuFonce: '#29475B',
+  dore: '#B19068',
+  blancCasse: '#F4F2EE'
+}
 
 export default function Settings() {
   // Theme state
