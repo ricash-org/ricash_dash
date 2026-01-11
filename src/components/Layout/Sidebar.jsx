@@ -105,15 +105,15 @@ export default function Sidebar({ isOpen, onToggle }) {
           />
         )}
         
-        {/* Sidebar avec conteneur blanc moderne */}
+        {/* Sidebar avec conteneur vert moderne */}
         <div className={cn(
-          "fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-50 transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 h-full bg-gradient-to-b from-[#2B8286] to-[#376470] border-r border-[#29475B]/30 z-50 transition-all duration-300 ease-in-out",
           "w-64 shadow-2xl",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}>
           
-          {/* Header avec logo sur fond blanc */}
-          <div className="flex flex-col items-center justify-center p-6 border-b border-gray-100 h-24 bg-gradient-to-br from-gray-50 to-white">
+          {/* Header avec logo sur fond vert */}
+          <div className="flex flex-col items-center justify-center p-6 border-b border-[#29475B]/30 h-24 bg-gradient-to-br from-[#2B8286] to-[#376470]">
             {/* Logo Ricash sans conteneur coloré */}
             <div className="w-32 h-32 flex items-center justify-center mb-3">
               <img 
@@ -128,7 +128,7 @@ export default function Sidebar({ isOpen, onToggle }) {
               variant="ghost"
               size="sm"
               onClick={onToggle}
-              className="lg:hidden absolute top-4 right-4 hover:bg-gray-100 text-gray-600 rounded-full w-8 h-8 p-0"
+              className="lg:hidden absolute top-4 right-4 hover:bg-white/20 text-white rounded-full w-8 h-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -156,20 +156,20 @@ export default function Sidebar({ isOpen, onToggle }) {
                     variant="ghost"
                     className={cn(
                       "w-full justify-start text-left font-medium h-12 px-4 rounded-xl transition-all duration-300",
-                      "hover:bg-gray-50 hover:shadow-md hover:scale-[1.02]",
+                      "hover:bg-white/20 hover:shadow-md hover:scale-[1.02]",
                       isActive(item.href) 
-                        ? "bg-gradient-to-r from-[#2B8286]/10 to-[#B19068]/10 text-[#29475B] shadow-md border border-[#2B8286]/20" 
-                        : "text-gray-700 hover:text-[#29475B]"
+                        ? "bg-white/30 text-white shadow-md border border-white/40" 
+                        : "text-white/90 hover:text-white"
                     )}
                   >
                     <div className="flex items-center w-full">
-                      {/* Icône avec couleurs Ricash */}
+                      {/* Icône avec couleurs blanches */}
                       <div className={cn(
                         "w-9 h-9 flex items-center justify-center rounded-xl mr-3 transition-all duration-300 border border-transparent",
-                        "hover:bg-[#2B8286]/10 hover:shadow-md",
+                        "hover:bg-white/20 hover:shadow-md",
                         isActive(item.href) 
-                          ? "bg-gradient-to-br from-[#2B8286] to-[#B19068] text-white shadow-lg border-[#2B8286]/20" 
-                          : "text-[#2B8286] border-[#2B8286]/15 bg-white"
+                          ? "bg-white/30 text-white shadow-lg border-white/40" 
+                          : "text-white/80 border-white/20 bg-white/10"
                       )}>
                         <item.icon className="h-5 w-5" />
                       </div>
@@ -178,13 +178,13 @@ export default function Sidebar({ isOpen, onToggle }) {
                       <div className="flex-1 min-w-0">
                         <div className={cn(
                           "text-sm font-semibold text-left transition-colors duration-300",
-                          isActive(item.href) ? "text-[#29475B]" : "text-gray-700 hover:text-[#29475B]"
+                          isActive(item.href) ? "text-white" : "text-white/90 hover:text-white"
                         )}>
                           {item.title}
                         </div>
                         <div className={cn(
                           "text-xs transition-colors duration-300",
-                          isActive(item.href) ? "text-[#2B8286]" : "text-gray-500 hover:text-[#2B8286]"
+                          isActive(item.href) ? "text-white/90" : "text-white/70 hover:text-white/90"
                         )}>
                           {item.description}
                         </div>
@@ -197,9 +197,9 @@ export default function Sidebar({ isOpen, onToggle }) {
           </nav>
 
                  {/* Footer simple */}
-         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
            <div className="text-center">
-             <p className="text-xs text-gray-500 font-medium">© 2025 Ricash</p>
+             <p className="text-xs text-white/80 font-medium">© 2025 Ricash</p>
            </div>
          </div>
       </div>

@@ -20,7 +20,7 @@ export default function Layout() {
         
         {/* Contenu principal qui se décale dynamiquement */}
         <div className={`transition-all duration-300 ease-out ${
-          sidebarOpen ? 'lg:ml-64' : 'ml-0'
+          sidebarOpen ? 'lg:ml-64' : 'lg:ml-64 ml-0'
         }`}>
           <ErrorBoundary>
             <Header onMenuToggle={toggleSidebar} isSidebarOpen={sidebarOpen} />
