@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AuthContext } from '@/hooks/useAuth'
+<<<<<<< HEAD
 import { setUnauthorizedHandler } from '@/lib/api-client'
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 // import { authAPI, tokenStorage } from '../lib/api'
 // import logger from '../lib/logger'
 // import { config } from '../lib/config'
@@ -12,13 +15,18 @@ const config = { auth: { maxLoginAttempts: 5, lockoutDuration: 900000, sessionTi
 const toast = { success: console.log, error: console.error, info: console.info }
 const authAPI = { 
   login: async (credentials) => {
+<<<<<<< HEAD
     // Identifiants de démonstration (email + mot de passe)
+=======
+    // Identifiants de démonstration
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     const validCredentials = [
       { email: 'admin@ricash.com', password: 'admin123', name: 'Administrateur', role: 'admin' },
       { email: 'user@ricash.com', password: 'user123', name: 'Utilisateur', role: 'user' },
       { email: 'demo@ricash.com', password: 'demo123', name: 'Démo', role: 'demo' },
       { email: 'test@ricash.com', password: 'test123', name: 'Test', role: 'test' }
     ]
+<<<<<<< HEAD
 
     // Flux de connexion par téléphone + OTP (démo)
     if (credentials.phone) {
@@ -48,6 +56,9 @@ const authAPI = {
     }
 
     // Flux email + mot de passe
+=======
+    
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     const user = validCredentials.find(
       cred => cred.email === credentials.email && cred.password === credentials.password
     )
@@ -68,6 +79,7 @@ const authAPI = {
     }
   },
   logout: async () => {},
+<<<<<<< HEAD
   refreshToken: async () => ({ accessToken: 'new_token', refreshToken: 'new_refresh' }),
   requestOtp: async (phone) => {
     const phoneRegex = /^\+?[0-9\s]{8,15}$/
@@ -80,6 +92,16 @@ const authAPI = {
   }
 }
 import { tokenStorage } from '@/lib/token-storage'
+=======
+  refreshToken: async () => ({ accessToken: 'new_token', refreshToken: 'new_refresh' })
+}
+const tokenStorage = {
+  getAccessToken: () => localStorage.getItem('token'),
+  getRefreshToken: () => localStorage.getItem('refresh'),
+  setTokens: (access, refresh) => { localStorage.setItem('token', access); localStorage.setItem('refresh', refresh) },
+  clearTokens: () => { localStorage.removeItem('token'); localStorage.removeItem('refresh'); localStorage.removeItem('ricash_user') }
+}
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 
 export function AuthProvider({ children }) {
@@ -199,7 +221,10 @@ export function AuthProvider({ children }) {
 
   // Check for existing session on mount
   useEffect(() => {
+<<<<<<< HEAD
     setUnauthorizedHandler(() => logout('Session expirée'))
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     const checkExistingSession = async () => {
       try {
         const savedUser = localStorage.getItem('ricash_user')
@@ -209,10 +234,16 @@ export function AuthProvider({ children }) {
           const userData = JSON.parse(savedUser)
           setUser(userData)
           
+<<<<<<< HEAD
           // Générer un token pour la session (email ou téléphone)
           const identifier = userData.email || userData.phone || userData.id || 'user'
           const accessToken = `token_${identifier}`
           const refreshToken = `refresh_${identifier}`
+=======
+          // Générer un token pour la session
+          const accessToken = `token_${userData.email}`
+          const refreshToken = `refresh_${userData.email}`
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
           tokenStorage.setTokens(accessToken, refreshToken)
           
           logger.info('Existing session restored', { 
@@ -335,10 +366,13 @@ export function AuthProvider({ children }) {
     }
   }
 
+<<<<<<< HEAD
   const requestOtp = async (phone) => {
     return authAPI.requestOtp(phone)
   }
 
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   const updateUser = useCallback((userData) => {
     setUser(userData)
     localStorage.setItem('ricash_user', JSON.stringify(userData))
@@ -370,7 +404,10 @@ export function AuthProvider({ children }) {
     // Actions
     login,
     logout,
+<<<<<<< HEAD
     requestOtp,
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     updateUser,
     refreshSession,
     resetSessionTimeout,

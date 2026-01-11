@@ -25,7 +25,10 @@ import {
   Send
 } from 'lucide-react'
 import { RicashButton } from '@/components/ui/ricash-button'
+<<<<<<< HEAD
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { RicashCard } from '@/components/ui/ricash-card'
 import { RicashInput } from '@/components/ui/ricash-input'
 import { RicashLabel } from '@/components/ui/ricash-label'
@@ -33,7 +36,10 @@ import { RicashTextarea } from '@/components/ui/ricash-textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
+<<<<<<< HEAD
 import { useAuth } from '@/hooks/useAuth'
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 // Mock data pour la validation KYC
 const mockKycData = {
@@ -105,6 +111,11 @@ const getStatusBadge = (status) => {
       return <Badge className="bg-green-100 text-green-800 flex items-center gap-1"><UserCheck className="h-3 w-3" />Validé</Badge>
     case 'en_cours':
       return <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>
+<<<<<<< HEAD
+=======
+    case 'rejete':
+      return <Badge className="bg-red-100 text-red-800 flex items-center gap-1"><Ban className="h-3 w-3" />Rejeté</Badge>
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     default:
       return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
   }
@@ -124,6 +135,11 @@ const getStatusIcon = (status) => {
       return <UserCheck className="h-5 w-5 text-green-500" />
     case 'en_cours':
       return <Clock className="h-5 w-5 text-blue-500" />
+<<<<<<< HEAD
+=======
+    case 'rejete':
+      return <Ban className="h-5 w-5 text-red-500" />
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     default:
       return <Clock className="h-5 w-5 text-gray-500" />
   }
@@ -141,15 +157,21 @@ const formatDate = (dateString) => {
 }
 
 export default function KycValidationPage() {
+<<<<<<< HEAD
   const { hasRole, hasPermission } = useAuth()
   const canDecide = hasRole('KYC_ADMIN') || hasRole('SUPER_ADMIN') || hasPermission('KYC_DECIDE')
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   const { id } = useParams()
   const navigate = useNavigate()
   const [comment, setComment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   
   const kycData = mockKycData[id]
+<<<<<<< HEAD
   const [currentKycStatus, setCurrentKycStatus] = useState(kycData?.kycStatus || 'en_attente')
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   
   if (!kycData) {
     return (
@@ -198,6 +220,7 @@ export default function KycValidationPage() {
 
   return (
     <div className="p-6 space-y-6">
+<<<<<<< HEAD
         {/* Breadcrumb */}
         <Breadcrumb>
           <BreadcrumbList>
@@ -215,6 +238,8 @@ export default function KycValidationPage() {
           </BreadcrumbList>
         </Breadcrumb>
 
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -254,6 +279,7 @@ export default function KycValidationPage() {
         <RicashCard className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-[#29475B]">Statut KYC</h3>
+<<<<<<< HEAD
             {getStatusIcon(currentKycStatus)}
           </div>
           <div className="space-y-3">
@@ -269,6 +295,12 @@ export default function KycValidationPage() {
                 <XCircle className="h-4 w-4 mr-1" /> Rejeter
               </RicashButton>
             </div>
+=======
+            {getStatusIcon(kycData.kycStatus)}
+          </div>
+          <div className="space-y-3">
+            {getStatusBadge(kycData.kycStatus)}
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             <div className="text-sm text-[#376470]">
               <p>Créé le: {formatDate(kycData.dateCreation)}</p>
               <p>Dernière connexion: {formatDate(kycData.dernierLogin)}</p>

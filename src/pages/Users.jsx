@@ -31,6 +31,7 @@ import { RicashInput, RicashSelect } from '@/components/ui/ricash-input'
 import { RicashStatusBadge } from '@/components/ui/ricash-table'
 import { RicashTable, RicashTableHeader, RicashTableBody, RicashTableRow, RicashTableCell } from '@/components/ui/ricash-table'
 import { RicashDropdownMenu, RicashDropdownItem, RicashDropdownSeparator } from '@/components/ui/ricash-dropdown'
+<<<<<<< HEAD
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination'
 import { exportToCsv } from '@/lib/csv'
@@ -39,6 +40,19 @@ import { RICASH_COLORS } from '@/lib/palette'
 // Les modals ont été convertis en pages dédiées
 
 // Palette centralisée via lib/palette
+=======
+
+// Les modals ont été convertis en pages dédiées
+
+// Palette de couleurs Ricash
+const RICASH_COLORS = {
+  bleuFonce: '#29475B',
+  dore: '#B19068',
+  turquoise: '#2B8286',
+  blancCasse: '#F4F2EE',
+  bleuVert: '#376470'
+}
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 // Mock data étendu
 const mockUsers = [
@@ -140,6 +154,7 @@ export default function Users() {
   }))
   
   const [isLoading, setIsLoading] = useState(false)
+<<<<<<< HEAD
   // Init from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -165,6 +180,8 @@ export default function Users() {
     if (filters.limit !== 20) params.set('limit', String(filters.limit))
     navigate({ pathname: location.pathname, search: params.toString() }, { replace: true })
   }, [filters, navigate, location.pathname])
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
   // Mettre à jour les filtres quand la route change
   useEffect(() => {
@@ -325,6 +342,7 @@ export default function Users() {
 
   return (
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
+<<<<<<< HEAD
       {/* Breadcrumb */}
       <div className="mb-2">
         <Breadcrumb>
@@ -339,6 +357,8 @@ export default function Users() {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       {/* Page header avec design Ricash */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
         <div className="flex justify-between items-center">
@@ -353,6 +373,16 @@ export default function Users() {
               <p className="text-lg text-[#376470] font-medium">
                 {pageContent.description}
           </p>
+<<<<<<< HEAD
+=======
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>Rôle des utilisateurs :</strong> Les utilisateurs sont des clients qui effectuent des transferts d'argent. 
+                  Chaque utilisateur peut être expéditeur ou destinataire dans les transferts. 
+                  Ils doivent passer la validation KYC pour effectuer des transactions.
+                </p>
+              </div>
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             </div>
         </div>
         <div className="flex gap-3">
@@ -375,6 +405,7 @@ export default function Users() {
             Actualiser
           </RicashButton>
         </div>
+<<<<<<< HEAD
           <div className="flex gap-3">
             <RicashButton
               variant="outline"
@@ -384,6 +415,8 @@ export default function Users() {
               <Download className="mr-2 h-5 w-5" /> Export CSV
             </RicashButton>
           </div>
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         </div>
       </div>
 
@@ -452,7 +485,11 @@ export default function Users() {
               ]}
             />
             
+<<<<<<< HEAD
           <RicashButton key="reset-filters-btn" variant="outline" onClick={resetFilters}>
+=======
+            <RicashButton key="reset-filters-btn" variant="outline" onClick={resetFilters}>
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
               <Filter className="mr-2 h-4 w-4" />
               Reset
             </RicashButton>
@@ -594,6 +631,7 @@ export default function Users() {
             <p className="text-[#376470]/70">Ajustez vos filtres pour voir plus de résultats</p>
           </div>
         )}
+<<<<<<< HEAD
         {/* Pagination */}
         <div className="flex items-center justify-between px-4 py-3">
           <div className="text-sm text-[#376470]">Page {filters.page} • {filteredUsers.length} résultat(s)</div>
@@ -613,6 +651,8 @@ export default function Users() {
             </PaginationContent>
           </Pagination>
         </div>
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       </RicashTableCard>
     </div>
   )

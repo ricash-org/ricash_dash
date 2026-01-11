@@ -14,6 +14,7 @@ import { RicashLabel } from '@/components/ui/ricash-label'
 import { RicashTextarea } from '@/components/ui/ricash-textarea'
 import { SafeSelect } from '@/components/ui/safe-select'
 import { toast } from 'sonner'
+<<<<<<< HEAD
 import OTPModal from '@/components/OTPModal'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -22,6 +23,12 @@ export default function CreateTransferPage() {
   const { requestOtp } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [otpOpen, setOtpOpen] = useState(false)
+=======
+
+export default function CreateTransferPage() {
+  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     expediteur: {
@@ -29,14 +36,28 @@ export default function CreateTransferPage() {
       prenom: '',
       telephone: '',
       email: '',
+<<<<<<< HEAD
       pays: 'Sénégal'
+=======
+      pays: 'Sénégal',
+      documentType: '',
+      documentNumber: '',
+      documentExpiry: ''
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     },
     destinataire: {
       nom: '',
       prenom: '',
       telephone: '',
       email: '',
+<<<<<<< HEAD
       pays: 'Sénégal'
+=======
+      pays: 'Sénégal',
+      documentType: '',
+      documentNumber: '',
+      documentExpiry: ''
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     },
     transfert: {
       montant: '',
@@ -100,11 +121,21 @@ export default function CreateTransferPage() {
       if (!formData.expediteur.prenom.trim()) newErrors['expediteur.prenom'] = 'Le prénom est requis'
       if (!formData.expediteur.telephone.trim()) newErrors['expediteur.telephone'] = 'Le téléphone est requis'
       if (!formData.expediteur.email.trim()) newErrors['expediteur.email'] = 'L\'email est requis'
+<<<<<<< HEAD
+=======
+      if (!formData.expediteur.documentType.trim()) newErrors['expediteur.documentType'] = 'Le type de document est requis'
+      if (!formData.expediteur.documentNumber.trim()) newErrors['expediteur.documentNumber'] = 'Le numéro du document est requis'
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     } else if (step === 2) {
       if (!formData.destinataire.nom.trim()) newErrors['destinataire.nom'] = 'Le nom est requis'
       if (!formData.destinataire.prenom.trim()) newErrors['destinataire.prenom'] = 'Le prénom est requis'
       if (!formData.destinataire.telephone.trim()) newErrors['destinataire.telephone'] = 'Le téléphone est requis'
       if (!formData.destinataire.email.trim()) newErrors['destinataire.email'] = 'L\'email est requis'
+<<<<<<< HEAD
+=======
+      if (!formData.destinataire.documentType.trim()) newErrors['destinataire.documentType'] = 'Le type de document est requis'
+      if (!formData.destinataire.documentNumber.trim()) newErrors['destinataire.documentNumber'] = 'Le numéro du document est requis'
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     } else if (step === 3) {
       if (!formData.transfert.montant || parseFloat(formData.transfert.montant) <= 0) {
         newErrors['transfert.montant'] = 'Le montant doit être positif'
@@ -133,9 +164,37 @@ export default function CreateTransferPage() {
     
     if (!validateStep(3)) return
     
+<<<<<<< HEAD
     // Demande OTP avant confirmation finale
     await requestOtp(formData.expediteur.telephone || '+221 77 000 00 00')
     setOtpOpen(true)
+=======
+    setIsLoading(true)
+    
+    try {
+      const transferData = {
+        id: `TXN${Date.now()}`,
+        ...formData,
+        statut: 'en_attente',
+        dateCreation: new Date().toISOString(),
+        agent: { id: 'AGT001', nom: 'Agent Principal' },
+        agence: { id: 'AGE001', nom: 'Agence Centrale' }
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      toast.success('Transfert créé avec succès!', {
+        description: `ID: ${transferData.id}`,
+        duration: 5000
+      })
+      
+      navigate('/app/transfers')
+    } catch (error) {
+      toast.error('Erreur lors de la création du transfert')
+    } finally {
+      setIsLoading(false)
+    }
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   }
 
   const getStepTitle = () => {
@@ -166,6 +225,17 @@ export default function CreateTransferPage() {
     { value: 'critique', label: 'Critique', key: 'urgency-critical' }
   ]
 
+<<<<<<< HEAD
+=======
+  const typesDocuments = [
+    { value: 'passeport', label: 'Passeport', key: 'doc-passport' },
+    { value: 'cni', label: 'Carte Nationale d\'Identité', key: 'doc-cni' },
+    { value: 'permis', label: 'Permis de Conduire', key: 'doc-license' },
+    { value: 'carte_sejour', label: 'Carte de Séjour', key: 'doc-residence' },
+    { value: 'autre', label: 'Autre', key: 'doc-other' }
+  ]
+
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   // Calculate fees when amount changes
   React.useEffect(() => {
     if (formData.transfert.montant) {
@@ -334,6 +404,56 @@ export default function CreateTransferPage() {
                   placeholder="Sélectionnez un pays"
                 />
               </div>
+<<<<<<< HEAD
+=======
+
+              {/* Section Documents d'identité expéditeur */}
+              <div className="border-t border-gray-200 pt-5 mt-5">
+                <h4 className="text-md font-semibold text-[#29475B] mb-4">Document d'identité</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="expediteur.documentType" className="text-sm font-medium">Type de document *</RicashLabel>
+                    <SafeSelect
+                      value={formData.expediteur.documentType}
+                      onValueChange={(value) => handleInputChange('expediteur.documentType', value)}
+                      options={typesDocuments}
+                      placeholder="Sélectionnez un type"
+                    />
+                    {errors['expediteur.documentType'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['expediteur.documentType']}</div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="expediteur.documentNumber" className="text-sm font-medium">Numéro du document *</RicashLabel>
+                    <RicashInput
+                      id="expediteur.documentNumber"
+                      value={formData.expediteur.documentNumber}
+                      onChange={(e) => handleInputChange('expediteur.documentNumber', e.target.value)}
+                      placeholder="Entrez le numéro"
+                      className={errors['expediteur.documentNumber'] ? 'border-red-500' : ''}
+                    />
+                    {errors['expediteur.documentNumber'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['expediteur.documentNumber']}</div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="expediteur.documentExpiry" className="text-sm font-medium">Date d'expiration</RicashLabel>
+                    <RicashInput
+                      id="expediteur.documentExpiry"
+                      type="date"
+                      value={formData.expediteur.documentExpiry}
+                      onChange={(e) => handleInputChange('expediteur.documentExpiry', e.target.value)}
+                      className={errors['expediteur.documentExpiry'] ? 'border-red-500' : ''}
+                    />
+                    {errors['expediteur.documentExpiry'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['expediteur.documentExpiry']}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             </div>
           </RicashCard>
         )}
@@ -428,6 +548,56 @@ export default function CreateTransferPage() {
                   placeholder="Sélectionnez un pays"
                 />
               </div>
+<<<<<<< HEAD
+=======
+
+              {/* Section Documents d'identité destinataire */}
+              <div className="border-t border-gray-200 pt-5 mt-5">
+                <h4 className="text-md font-semibold text-[#29475B] mb-4">Document d'identité</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="destinataire.documentType" className="text-sm font-medium">Type de document *</RicashLabel>
+                    <SafeSelect
+                      value={formData.destinataire.documentType}
+                      onValueChange={(value) => handleInputChange('destinataire.documentType', value)}
+                      options={typesDocuments}
+                      placeholder="Sélectionnez un type"
+                    />
+                    {errors['destinataire.documentType'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['destinataire.documentType']}</div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="destinataire.documentNumber" className="text-sm font-medium">Numéro du document *</RicashLabel>
+                    <RicashInput
+                      id="destinataire.documentNumber"
+                      value={formData.destinataire.documentNumber}
+                      onChange={(e) => handleInputChange('destinataire.documentNumber', e.target.value)}
+                      placeholder="Entrez le numéro"
+                      className={errors['destinataire.documentNumber'] ? 'border-red-500' : ''}
+                    />
+                    {errors['destinataire.documentNumber'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['destinataire.documentNumber']}</div>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <RicashLabel htmlFor="destinataire.documentExpiry" className="text-sm font-medium">Date d'expiration</RicashLabel>
+                    <RicashInput
+                      id="destinataire.documentExpiry"
+                      type="date"
+                      value={formData.destinataire.documentExpiry}
+                      onChange={(e) => handleInputChange('destinataire.documentExpiry', e.target.value)}
+                      className={errors['destinataire.documentExpiry'] ? 'border-red-500' : ''}
+                    />
+                    {errors['destinataire.documentExpiry'] && (
+                      <div className="text-red-500 text-xs mt-1">{errors['destinataire.documentExpiry']}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             </div>
           </RicashCard>
         )}
@@ -577,6 +747,7 @@ export default function CreateTransferPage() {
           </div>
         </div>
       </form>
+<<<<<<< HEAD
 
       <OTPModal
         open={otpOpen}
@@ -605,6 +776,8 @@ export default function CreateTransferPage() {
           }
         }}
       />
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     </div>
   )
 }

@@ -29,15 +29,23 @@ export const MenuButton = React.forwardRef(({
         // Base styles
         "relative lg:hidden p-3 h-12 w-12 rounded-xl",
         "transition-all duration-300 ease-out",
+<<<<<<< HEAD
         "text-[#2B8286] hover:text-[#2B8286]",
+=======
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         
         // Hover states
         "hover:bg-[#2B8286]/10 hover:shadow-lg",
         "hover:scale-105 active:scale-95",
         
         // Focus states
+<<<<<<< HEAD
         "focus:ring-2 focus:ring-[#2B8286]/30 focus:ring-offset-2",
         "focus:outline-none focus-visible:ring-[#2B8286]/40",
+=======
+        "focus:ring-2 focus:ring-primary/30 focus:ring-offset-2",
+        "focus:outline-none focus-visible:ring-primary/50",
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         
         // Touch optimization
         "touch-manipulation select-none",
@@ -46,7 +54,11 @@ export const MenuButton = React.forwardRef(({
         "group overflow-hidden",
         
         // Pressed state
+<<<<<<< HEAD
         isPressed && "scale-95 bg-[#2B8286]/15",
+=======
+        isPressed && "scale-95 bg-[#2B8286]/20",
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         
         className
       )}
@@ -61,7 +73,11 @@ export const MenuButton = React.forwardRef(({
         {/* Top line */}
         <div 
           className={cn(
+<<<<<<< HEAD
             "absolute w-5 h-0.5 bg-current transition-all duration-300 ease-out",
+=======
+            "absolute w-5 h-0.5 bg-[#2B8286] transition-all duration-300 ease-out",
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             "transform origin-center",
             isOpen ? "rotate-45 translate-y-0" : "-translate-y-1.5"
           )}
@@ -70,7 +86,11 @@ export const MenuButton = React.forwardRef(({
         {/* Middle line */}
         <div 
           className={cn(
+<<<<<<< HEAD
             "absolute w-5 h-0.5 bg-current transition-all duration-200 ease-out",
+=======
+            "absolute w-5 h-0.5 bg-[#2B8286] transition-all duration-200 ease-out",
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             isOpen ? "opacity-0 scale-0" : "opacity-100 scale-100"
           )}
         />
@@ -78,7 +98,11 @@ export const MenuButton = React.forwardRef(({
         {/* Bottom line */}
         <div 
           className={cn(
+<<<<<<< HEAD
             "absolute w-5 h-0.5 bg-current transition-all duration-300 ease-out",
+=======
+            "absolute w-5 h-0.5 bg-[#2B8286] transition-all duration-300 ease-out",
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             "transform origin-center",
             isOpen ? "-rotate-45 translate-y-0" : "translate-y-1.5"
           )}
@@ -87,7 +111,11 @@ export const MenuButton = React.forwardRef(({
       
       {/* Ripple effect */}
       <div className="absolute inset-0 rounded-xl overflow-hidden">
+<<<<<<< HEAD
         <div className="absolute inset-0 bg-primary/10 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-xl" />
+=======
+        <div className="absolute inset-0 bg-[#2B8286]/10 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-xl" />
+>>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       </div>
       
       {/* Screen reader feedback */}
