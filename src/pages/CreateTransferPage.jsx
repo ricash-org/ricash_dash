@@ -14,6 +14,8 @@ import { RicashLabel } from '@/components/ui/ricash-label'
 import { RicashTextarea } from '@/components/ui/ricash-textarea'
 import { SafeSelect } from '@/components/ui/safe-select'
 import { toast } from 'sonner'
+
+export default function CreateTransferPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     expediteur: {

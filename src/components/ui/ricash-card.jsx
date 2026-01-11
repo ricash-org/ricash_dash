@@ -19,10 +19,12 @@ export function RicashCard({
       {(title || subtitle) && (
         <div className="p-6 border-b border-[#F4F2EE]">
           {title && (
+            <h3 className="text-xl font-bold text-[#29475B]">
               {title}
             </h3>
           )}
           {subtitle && (
+            <p className="text-sm text-[#376470] mt-1">
               {subtitle}
             </p>
           )}
@@ -60,22 +62,31 @@ export function RicashStatCard({
       {...domProps}
     >
       <div className="flex items-center justify-between mb-4">
-            <Icon className={cn("h-4 w-4", iconColor || "text-[#2B8286]")} />
-          </div>
+        {title && (
+          <h3 className="text-sm font-medium text-[#376470]">{title}</h3>
+        )}
+        {Icon && (
+          <Icon className={cn("h-4 w-4", iconColor || "text-[#2B8286]")} />
         )}
       </div>
       
+      <div className="text-2xl font-bold text-[#29475B] mb-2">
         {value}
       </div>
       
       {subtitle && (
+        <div className="text-sm text-[#376470]">
           {subtitle}
         </div>
       )}
       
       {(trend || trendValue) && (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mt-2">
           <div className={cn(
+            "text-sm font-medium",
+            trendUp ? "text-green-600" : "text-red-600"
+          )}>
+            {trend || trendValue}
           </div>
         </div>
       )}

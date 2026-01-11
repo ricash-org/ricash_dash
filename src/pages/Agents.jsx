@@ -351,24 +351,25 @@ export default function Agents() {
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
       {/* Page header avec design Ricash */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
-      <div className="flex justify-between items-center">
-        <div>
+        <div className="flex justify-between items-center">
+          <div>
             <h1 className="text-4xl font-bold tracking-tight text-[#29475B] mb-2">
               Gestion des Agents
             </h1>
             <p className="text-lg text-[#376470] font-medium">
-            Gérez votre équipe d'agents et suivez leurs performances
-          </p>
-        </div>
+              Gérez votre équipe d'agents et suivez leurs performances
+            </p>
+          </div>
+          <div className="flex gap-3">
             <RicashButton
               variant="outline"
               size="lg"
-            onClick={handleRefresh}
-            loading={isLoading}
-            loadingText="Actualisation..."
-          >
+              onClick={handleRefresh}
+              loading={isLoading}
+              loadingText="Actualisation..."
+            >
               <RefreshCw className="mr-2 h-5 w-5" />
-            Actualiser
+              Actualiser
             </RicashButton>
             <RicashButton 
               variant="accent"
@@ -452,6 +453,7 @@ export default function Agents() {
           <h3 className="text-xl font-bold text-[#29475B] mb-4">
             Filtres et recherche
           </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#376470]" />
               <RicashInput
@@ -463,7 +465,7 @@ export default function Agents() {
             </div>
             
             <RicashSelect
-                value={filters.status}
+              value={filters.status}
               onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
             >
               <option value="all">Tous les statuts</option>
@@ -473,7 +475,7 @@ export default function Agents() {
             </RicashSelect>
 
             <RicashSelect
-                value={filters.niveau}
+              value={filters.niveau}
               onValueChange={(value) => setFilters(prev => ({ ...prev, niveau: value }))}
             >
               <option value="all">Tous les niveaux</option>
@@ -483,7 +485,7 @@ export default function Agents() {
             </RicashSelect>
 
             <RicashSelect
-                value={filters.agence}
+              value={filters.agence}
               onValueChange={(value) => setFilters(prev => ({ ...prev, agence: value }))}
             >
               <option value="all">Toutes les agences</option>
@@ -493,7 +495,7 @@ export default function Agents() {
             </RicashSelect>
 
             <RicashSelect
-                value={filters.poste}
+              value={filters.poste}
               onValueChange={(value) => setFilters(prev => ({ ...prev, poste: value }))}
             >
               <option value="all">Tous les postes</option>
@@ -522,27 +524,47 @@ export default function Agents() {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
+            {filteredAgents.map((agent) => (
+              <RicashTableRow key={agent.id}>
+                <RicashTableCell>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#2B8286] to-[#B19068] rounded-lg flex items-center justify-center text-white font-semibold">
+                      {agent.prenom[0]}{agent.nom[0]}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-[#29475B]">
+                        {agent.prenom} {agent.nom}
+                      </div>
+                      <div className="text-sm text-[#376470]">{agent.id}</div>
                     </div>
                   </div>
                 </RicashTableCell>
                 
                 <RicashTableCell>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Phone className="h-3 w-3 text-[#376470]" />
+                      <span className="text-[#29475B]">{agent.telephone}</span>
                     </div>
-                      </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Mail className="h-3 w-3 text-[#376470]" />
+                      <span className="text-[#29475B]">{agent.email}</span>
+                    </div>
+                  </div>
                 </RicashTableCell>
                 
                 <RicashTableCell>
-                        </div>
-                      </div>
+                  <RicashStatusBadge 
+                    status={getStatusColor(agent.statut)}
+                    text={getStatusText(agent.statut)}
+                  />
                 </RicashTableCell>
                 
                 <RicashTableCell>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#376470]">CA:</span>
-                      <span className="font-medium text-[#29475B]">
-                        {formatCurrency(agent.chiffreAffaires)}
-                      </span>
+                  <div className="space-y-1">
+                    <div className="font-medium text-[#29475B]">{agent.agence.nom}</div>
+                    <div className="text-sm text-[#376470]">{agent.agence.ville}</div>
+                  </div>
                 </RicashTableCell>
                 
                 <RicashTableCell>
@@ -555,20 +577,18 @@ export default function Agents() {
                     >
                       <Eye className="h-4 w-4" />
                     </RicashIconButton>
-                    
-                    
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <RicashIconButton
-                            variant="ghost"
-                            size="sm"
-                            className="text-[#376470] hover:bg-[#376470]/10"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </RicashIconButton>
-                        </DropdownMenuTrigger>
-                        {renderAgentActions(agent)}
-                      </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <RicashIconButton
+                          variant="ghost"
+                          size="sm"
+                          className="text-[#376470] hover:bg-[#376470]/10"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </RicashIconButton>
+                      </DropdownMenuTrigger>
+                      {renderAgentActions(agent)}
+                    </DropdownMenu>
                   </div>
                 </RicashTableCell>
               </RicashTableRow>

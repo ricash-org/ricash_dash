@@ -386,20 +386,30 @@ export default function Users() {
           
           <RicashSelect
             value={filters.kycStatus}
-              onValueChange={(value) => handleFilterChange('kycStatus', value)}
+            onValueChange={(value) => handleFilterChange('kycStatus', value)}
             options={[
-                { value: 'all', label: 'Tous KYC' },
-                { value: 'valide', label: 'KYC Validé' },
-                { value: 'en_cours', label: 'En cours' },
-                { value: 'rejete', label: 'Rejeté' },
-                { value: 'non_verifie', label: 'Non vérifié' }
-              ]}
-            />
-            
-              <Filter className="mr-2 h-4 w-4" />
-              Reset
-            </RicashButton>
-          </div>
+              { value: 'all', label: 'Tous KYC' },
+              { value: 'valide', label: 'KYC Validé' },
+              { value: 'en_cours', label: 'En cours' },
+              { value: 'rejete', label: 'Rejeté' },
+              { value: 'non_verifie', label: 'Non vérifié' }
+            ]}
+          />
+          
+          <RicashButton
+            variant="outline"
+            onClick={() => {
+              setFilters({
+                search: '',
+                status: 'all',
+                kycStatus: 'all'
+              })
+            }}
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Reset
+          </RicashButton>
+        </div>
         </div>
       </RicashCard>
 
@@ -425,10 +435,19 @@ export default function Users() {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
-            {filteredUsers.map((user) => (
+            {filteredUsers.length === 0 ? (
+              <RicashTableRow>
+                <RicashTableCell colSpan={9} className="text-center py-12">
+                  <UsersIcon className="h-16 w-16 mx-auto text-[#376470]/50 mb-4" />
+                  <p className="text-[#376470] text-lg font-medium">Aucun utilisateur trouvé</p>
+                  <p className="text-[#376470]/70">Ajustez vos filtres pour voir plus de résultats</p>
+                </RicashTableCell>
+              </RicashTableRow>
+            ) : (
+              filteredUsers.map((user) => (
                 <RicashTableRow key={user.id} className="hover:bg-[#376470]/5 transition-colors">
-                <RicashTableCell>
-                  <div className="flex items-center space-x-3">
+                  <RicashTableCell>
+                    <div className="flex items-center space-x-3">
                       <div className={`w-2 h-2 rounded-full ${
                         user.statut === 'actif' ? 'bg-green-500' :
                         user.statut === 'suspendu' ? 'bg-red-500' :
@@ -436,52 +455,52 @@ export default function Users() {
                       }`}></div>
                       <div className="w-10 h-10 bg-gradient-to-br from-[#2B8286] to-[#2B8286]/80 rounded-lg flex items-center justify-center shadow-sm">
                         <UsersIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
+                      </div>
+                      <div>
                         <div className="font-medium text-[#29475B]">{user.prenom} {user.nom}</div>
                         <div className="text-sm text-[#376470]">{user.id}</div>
+                      </div>
                     </div>
-                  </div>
-                </RicashTableCell>
-                
-                <RicashTableCell>
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
                     <div>
                       <div className="text-sm text-[#29475B]">{user.email}</div>
                       <div className="text-sm text-[#376470]">{user.telephone}</div>
-                  </div>
-                </RicashTableCell>
-                
-                <RicashTableCell>
+                    </div>
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
                     <div>
                       <div className="text-sm text-[#29475B]">{user.ville}</div>
                       <div className="text-sm text-[#376470]">{user.pays}</div>
-                  </div>
-                </RicashTableCell>
-                
-                <RicashTableCell>
-                  <RicashStatusBadge
+                    </div>
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
+                    <RicashStatusBadge
                       status={user.statut === 'actif' ? 'success' : user.statut === 'suspendu' ? 'error' : 'warning'} 
                       text={user.statut === 'actif' ? 'Actif' : user.statut === 'suspendu' ? 'Suspendu' : 'En attente'} 
-                  />
-                </RicashTableCell>
-                
-                <RicashTableCell>
-                  <RicashStatusBadge
+                    />
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
+                    <RicashStatusBadge
                       status={user.kycStatus === 'valide' ? 'success' : user.kycStatus === 'en_cours' ? 'warning' : 'error'} 
                       text={user.kycStatus === 'valide' ? 'Validé' : user.kycStatus === 'en_cours' ? 'En cours' : 'Rejeté'} 
-                  />
-                </RicashTableCell>
-                
-                <RicashTableCell>
+                    />
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
                     <div className="text-sm font-semibold text-[#29475B]">€{user.solde.toFixed(2)}</div>
                     <div className="text-xs text-[#376470]">{user.typeCompte}</div>
                   </RicashTableCell>
                   
                   <RicashTableCell>
                     <div className="text-center font-medium text-[#29475B]">{user.transactions}</div>
-                </RicashTableCell>
-                
-                <RicashTableCell>
+                  </RicashTableCell>
+                  
+                  <RicashTableCell>
                     <div className="text-sm text-[#376470]">{user.derniereConnexion}</div>
                   </RicashTableCell>
                   
@@ -523,20 +542,13 @@ export default function Users() {
                         Supprimer
                       </RicashDropdownItem>
                     </RicashDropdownMenu>
-                </RicashTableCell>
-              </RicashTableRow>
-            ))}
+                  </RicashTableCell>
+                </RicashTableRow>
+              ))
+            )}
           </RicashTableBody>
         </RicashTable>
         </div>
-
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <UsersIcon className="h-16 w-16 mx-auto text-[#376470]/50 mb-4" />
-            <p className="text-[#376470] text-lg font-medium">Aucun utilisateur trouvé</p>
-            <p className="text-[#376470]/70">Ajustez vos filtres pour voir plus de résultats</p>
-          </div>
-        )}
       </RicashTableCard>
     </div>
   )
