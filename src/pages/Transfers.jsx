@@ -461,6 +461,7 @@ export default function Transfers() {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
+            {filteredTransfers.map((transfer) => (
               <RicashTableRow key={transfer.id}>
                 <RicashTableCell>
                         <div>

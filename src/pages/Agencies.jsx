@@ -443,6 +443,7 @@ const Agencies = React.memo(() => {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
+            {filteredAgencies.map((agency) => (
               <RicashTableRow key={agency.id}>
                 <RicashTableCell>
                   <div>
