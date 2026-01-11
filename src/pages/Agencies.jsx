@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
-=======
-import React, { useState, useMemo, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { 
   Search, 
   Filter, 
@@ -37,12 +29,6 @@ import {
   RicashTableCell
 } from '@/components/ui/ricash-table'
 import { RicashTableActionsDropdown } from '@/components/ui/ricash-dropdown'
-<<<<<<< HEAD
-import { Switch } from '@/components/ui/switch'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination'
-import { exportToCsv } from '@/lib/csv'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 // Import modals
 // import AgencyDetailsModal from '../components/Modals/AgencyDetailsModal'
@@ -225,10 +211,6 @@ const formatCurrency = (amount) => {
 
 const Agencies = React.memo(() => {
   const navigate = useNavigate()
-<<<<<<< HEAD
-  const location = useLocation()
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   const [agencies, setAgencies] = useState(initialAgencies)
   const [isLoading, setIsLoading] = useState(false)
   
@@ -239,11 +221,6 @@ const Agencies = React.memo(() => {
     type: 'all',
     ville: 'all'
   })
-<<<<<<< HEAD
-  const [page, setPage] = useState(1)
-  const [pageSize] = useState(10)
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   
   // Modal states - supprimés car convertis en pages
 
@@ -259,10 +236,6 @@ const Agencies = React.memo(() => {
       type: 'all',
       ville: 'all'
     })
-<<<<<<< HEAD
-    setPage(1)
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   }, [])
   
   const handleRefresh = useCallback(async () => {
@@ -288,38 +261,6 @@ const Agencies = React.memo(() => {
     return matchesSearch && matchesStatus && matchesType && matchesVille
   })
   }, [agencies, filters])
-<<<<<<< HEAD
-  // Init from URL
-  useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    setFilters(prev => ({
-      ...prev,
-      search: params.get('search') || '',
-      status: params.get('status') || 'all',
-      type: params.get('type') || 'all',
-      ville: params.get('ville') || 'all',
-    }))
-    const p = parseInt(params.get('page') || '1', 10)
-    setPage(isNaN(p) || p < 1 ? 1 : p)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Persist to URL
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (filters.search) params.set('search', filters.search)
-    if (filters.status !== 'all') params.set('status', filters.status)
-    if (filters.type !== 'all') params.set('type', filters.type)
-    if (filters.ville !== 'all') params.set('ville', filters.ville)
-    if (page > 1) params.set('page', String(page))
-    navigate({ pathname: location.pathname, search: params.toString() }, { replace: true })
-  }, [filters, page, navigate, location.pathname])
-
-  const totalItems = filteredAgencies.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
-  const pagedAgencies = filteredAgencies.slice((page-1)*pageSize, (page-1)*pageSize + pageSize)
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
   const stats = {
     total: agencies.length,
@@ -357,22 +298,6 @@ const Agencies = React.memo(() => {
 
   return (
     <div className="p-6 space-y-6">
-<<<<<<< HEAD
-      <div className="mb-1">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/app/dashboard">Dashboard</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Agences</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       {/* Page header */}
       <div className="flex justify-between items-center">
         <div>
@@ -383,15 +308,6 @@ const Agencies = React.memo(() => {
         </div>
         <div className="flex gap-2">
           <RicashButton
-<<<<<<< HEAD
-            variant="outline"
-            onClick={() => exportToCsv('agencies.csv', [["ID","Nom","Code","Ville","Quartier","Téléphone","Email","Statut","Agents","CA"], ...filteredAgencies.map(a => [a.id, a.nom, a.code, a.ville, a.quartier, a.telephone, a.email, a.statut, String(a.nombreAgents), String(a.chiffreAffaires)])])}
-          >
-            Export CSV
-          </RicashButton>
-          <RicashButton
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             onClick={handleRefresh}
             loading={isLoading}
             loadingText="Actualisation..."
@@ -527,11 +443,6 @@ const Agencies = React.memo(() => {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
-<<<<<<< HEAD
-            {pagedAgencies.map((agency) => (
-=======
-            {filteredAgencies.map((agency) => (
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
               <RicashTableRow key={agency.id}>
                 <RicashTableCell>
                   <div>
@@ -564,24 +475,6 @@ const Agencies = React.memo(() => {
                   </div>
                 </RicashTableCell>
                 <RicashTableCell>{getTypeAgenceBadge(agency.typeAgence)}</RicashTableCell>
-<<<<<<< HEAD
-                <RicashTableCell>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(agency.statut)}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Active</span>
-                      <Switch
-                        checked={agency.statut === 'active'}
-                        onCheckedChange={(checked) => {
-                          setAgencies(prev => prev.map(a => a.id === agency.id ? { ...a, statut: checked ? 'active' : 'suspendue' } : a))
-                        }}
-                      />
-                    </div>
-                  </div>
-                </RicashTableCell>
-=======
-                <RicashTableCell>{getStatusBadge(agency.statut)}</RicashTableCell>
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
                 <RicashTableCell>
                   <div className="text-center">
                     <span className="font-medium">{agency.nombreAgents}</span>
@@ -630,30 +523,6 @@ const Agencies = React.memo(() => {
             <p className="text-muted-foreground">Aucune agence trouvée avec ces critères.</p>
           </div>
         )}
-<<<<<<< HEAD
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="text-sm text-muted-foreground">Page {page} / {totalPages} • {totalItems} agence(s)</div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious href="#" onClick={() => setPage(p => Math.max(1, p-1))} />
-              </PaginationItem>
-              {Array.from({ length: totalPages }).slice(0,5).map((_, idx) => {
-                const num = idx + 1
-                return (
-                  <PaginationItem key={num}>
-                    <PaginationLink href="#" isActive={num === page} onClick={() => setPage(num)}>{num}</PaginationLink>
-                  </PaginationItem>
-                )
-              })}
-              <PaginationItem>
-                <PaginationNext href="#" onClick={() => setPage(p => Math.min(totalPages, p+1))} />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       </RicashTableCard>
 
     </div>

@@ -1,8 +1,4 @@
 import { useState } from 'react'
-<<<<<<< HEAD
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { 
   Settings as SettingsIcon,
   User,
@@ -39,10 +35,6 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { RicashCard, RicashStatCard } from '@/components/ui/ricash-card'
-<<<<<<< HEAD
-import { RICASH_COLORS } from '@/lib/palette'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { RicashButton, RicashIconButton } from '@/components/ui/ricash-button'
 import { RicashInput } from '@/components/ui/ricash-input'
 import { RicashLabel } from '@/components/ui/ricash-input'
@@ -61,18 +53,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 
-<<<<<<< HEAD
-// Palette centralisée via lib/palette
-=======
-// Palette de couleurs Ricash
-const RICASH_COLORS = {
-  bleuFonce: '#29475B',
-  dore: '#B19068',
-  turquoise: '#2B8286',
-  blancCasse: '#F4F2EE',
-  bleuVert: '#376470'
-}
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 export default function Settings() {
   // Theme state
@@ -160,20 +140,6 @@ export default function Settings() {
 
   return (
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
-<<<<<<< HEAD
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/app/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Paramètres</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       {/* Page header avec design Ricash */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
       <div className="flex justify-between items-center">

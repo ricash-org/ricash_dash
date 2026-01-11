@@ -53,66 +53,10 @@ export const SAFE_SELECT_OPTIONS = {
   
   countries: [
     { value: 'all', label: 'Tous les pays', key: 'country-all' },
-<<<<<<< HEAD
-    { value: 'France', label: 'France', key: 'country-france' },
-=======
-    
-    // Afrique de l'Ouest
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     { value: 'Senegal', label: 'Sénégal', key: 'country-senegal' },
     { value: 'Mali', label: 'Mali', key: 'country-mali' },
     { value: 'Burkina Faso', label: 'Burkina Faso', key: 'country-burkina' },
     { value: 'Côte d\'Ivoire', label: 'Côte d\'Ivoire', key: 'country-ivory-coast' },
-<<<<<<< HEAD
-    { value: 'Maroc', label: 'Maroc', key: 'country-morocco' },
-    { value: 'Tunisie', label: 'Tunisie', key: 'country-tunisia' },
-    { value: 'Algérie', label: 'Algérie', key: 'country-algeria' },
-    { value: 'Canada', label: 'Canada', key: 'country-canada' },
-    { value: 'États-Unis', label: 'États-Unis', key: 'country-usa' },
-    { value: 'Royaume-Uni', label: 'Royaume-Uni', key: 'country-uk' }
-=======
-    { value: 'Guinée', label: 'Guinée', key: 'country-guinea' },
-    { value: 'Guinée-Bissau', label: 'Guinée-Bissau', key: 'country-guinea-bissau' },
-    { value: 'Sierra Leone', label: 'Sierra Leone', key: 'country-sierra-leone' },
-    { value: 'Liberia', label: 'Liberia', key: 'country-liberia' },
-    { value: 'Ghana', label: 'Ghana', key: 'country-ghana' },
-    { value: 'Togo', label: 'Togo', key: 'country-togo' },
-    { value: 'Bénin', label: 'Bénin', key: 'country-benin' },
-    { value: 'Niger', label: 'Niger', key: 'country-niger' },
-    { value: 'Nigeria', label: 'Nigeria', key: 'country-nigeria' },
-    { value: 'Gambie', label: 'Gambie', key: 'country-gambia' },
-    { value: 'Cap-Vert', label: 'Cap-Vert', key: 'country-cape-verde' },
-    
-    // Afrique du Nord
-    { value: 'Maroc', label: 'Maroc', key: 'country-morocco' },
-    { value: 'Tunisie', label: 'Tunisie', key: 'country-tunisia' },
-    { value: 'Algérie', label: 'Algérie', key: 'country-algeria' },
-    { value: 'Libye', label: 'Libye', key: 'country-libya' },
-    { value: 'Égypte', label: 'Égypte', key: 'country-egypt' },
-    
-    // Europe
-    { value: 'France', label: 'France', key: 'country-france' },
-    { value: 'Espagne', label: 'Espagne', key: 'country-spain' },
-    { value: 'Italie', label: 'Italie', key: 'country-italy' },
-    { value: 'Portugal', label: 'Portugal', key: 'country-portugal' },
-    { value: 'Belgique', label: 'Belgique', key: 'country-belgium' },
-    { value: 'Suisse', label: 'Suisse', key: 'country-switzerland' },
-    { value: 'Allemagne', label: 'Allemagne', key: 'country-germany' },
-    { value: 'Pays-Bas', label: 'Pays-Bas', key: 'country-netherlands' },
-    { value: 'Royaume-Uni', label: 'Royaume-Uni', key: 'country-uk' },
-    { value: 'Irlande', label: 'Irlande', key: 'country-ireland' },
-    
-    // Amérique du Nord
-    { value: 'Canada', label: 'Canada', key: 'country-canada' },
-    { value: 'États-Unis', label: 'États-Unis', key: 'country-usa' },
-    
-    // Autres pays importants
-    { value: 'Brésil', label: 'Brésil', key: 'country-brazil' },
-    { value: 'Chine', label: 'Chine', key: 'country-china' },
-    { value: 'Inde', label: 'Inde', key: 'country-india' },
-    { value: 'Japon', label: 'Japon', key: 'country-japan' },
-    { value: 'Australie', label: 'Australie', key: 'country-australia' }
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   ],
   
   months: [

@@ -1,8 +1,4 @@
 import { useState } from 'react'
-<<<<<<< HEAD
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { 
   BarChart3, 
   TrendingUp, 
@@ -29,10 +25,6 @@ import {
   Eye
 } from 'lucide-react'
 import { RicashCard, RicashStatCard, RicashTableCard } from '@/components/ui/ricash-card'
-<<<<<<< HEAD
-import { RICASH_COLORS } from '@/lib/palette'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { RicashButton, RicashIconButton } from '@/components/ui/ricash-button'
 import { RicashSelect } from '@/components/ui/ricash-input'
 import { RicashTabs, RicashTabsContent, RicashTabsList, RicashTabsTrigger } from '@/components/ui/ricash-navigation'
@@ -54,18 +46,6 @@ import {
   AreaChart
 } from 'recharts'
 
-<<<<<<< HEAD
-=======
-// Palette de couleurs Ricash
-const RICASH_COLORS = {
-  bleuFonce: '#29475B',
-  dore: '#B19068',
-  turquoise: '#2B8286',
-  blancCasse: '#F4F2EE',
-  bleuVert: '#376470'
-}
-
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 // Mock data for reports
 const monthlyData = [
   { month: 'Jan', utilisateurs: 2400, transferts: 4800, volume: 980000, commissions: 12400 },
@@ -184,70 +164,15 @@ export default function Reports() {
   const handleGenerateReport = () => {
     // Logique pour générer un rapport
     console.log('Générer un nouveau rapport')
-<<<<<<< HEAD
-=======
-    // Simulation de génération de rapport
-    const newReport = {
-      id: `RPT${Date.now()}`,
-      nom: `Rapport ${new Date().toLocaleDateString('fr-FR')}`,
-      type: 'Mensuel',
-      date: new Date().toISOString().split('T')[0],
-      statut: 'processing'
-    }
-    // Ici on ajouterait le rapport à la liste
-    console.log('Nouveau rapport créé:', newReport)
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   }
 
   const handleDownloadReport = (reportId) => {
     // Logique pour télécharger un rapport
     console.log('Télécharger rapport:', reportId)
-<<<<<<< HEAD
-=======
-    // Simulation de téléchargement
-    const report = recentReports.find(r => r.id === reportId)
-    if (report) {
-      // Créer un fichier CSV simulé
-      const csvContent = `Rapport,${report.nom}\nType,${report.type}\nDate,${report.date}\nStatut,${report.statut}\n\nDonnées du rapport...`
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', `${report.nom.replace(/\s+/g, '_')}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-  }
-
-  const handleViewReport = (reportId) => {
-    // Logique pour visualiser un rapport
-    console.log('Visualiser rapport:', reportId)
-    const report = recentReports.find(r => r.id === reportId)
-    if (report) {
-      // Ici on ouvrirait une modal ou redirigerait vers une page de détail
-      alert(`Visualisation du rapport: ${report.nom}`)
-    }
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
   }
 
   return (
     <div className="space-y-8 p-6 bg-[#F4F2EE] min-h-screen">
-<<<<<<< HEAD
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/app/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Rapports & Analytics</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
       {/* Page header avec design Ricash */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#376470]/10">
         <div className="flex justify-between items-center">
@@ -717,10 +642,6 @@ export default function Reports() {
                         <RicashIconButton
                           variant="ghost"
                           size="sm"
-<<<<<<< HEAD
-=======
-                          onClick={() => handleViewReport(report.id)}
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
                           className="text-[#376470] hover:bg-[#376470]/10"
                         >
                           <Eye className="h-4 w-4" />

@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< HEAD
 :root {
   --ricash-blue-dark: #29475B;
   --ricash-blue-green: #376470;
@@ -16,10 +15,6 @@
   --otp-gap-md: 1.75rem;  /* 28px */
 }
 
-
-
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 /* Animation sécurisée pour les boutons de chargement */
 @keyframes spin {
   from {

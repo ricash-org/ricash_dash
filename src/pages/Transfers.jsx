@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-<<<<<<< HEAD
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination'
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 import { 
   Search, 
   Filter, 
@@ -39,22 +34,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-<<<<<<< HEAD
-import { exportToCsv } from '@/lib/csv'
-import { RICASH_COLORS } from '@/lib/palette'
-
-// Palette centralisée via lib/palette
-=======
-
-// Palette de couleurs Ricash
-const RICASH_COLORS = {
-  bleuFonce: '#29475B',
-  dore: '#B19068',
-  turquoise: '#2B8286',
-  blancCasse: '#F4F2EE',
-  bleuVert: '#376470'
-}
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
 // Mock data enrichi
 const mockTransfers = [
@@ -243,11 +222,6 @@ export default function Transfers() {
   const [sortBy, setSortBy] = useState('dateCreation')
   const [sortOrder, setSortOrder] = useState('desc')
   const [transfers, setTransfers] = useState(mockTransfers)
-<<<<<<< HEAD
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
   // Déterminer le filtre basé sur l'URL
   const currentFilter = useMemo(() => {
@@ -329,38 +303,6 @@ export default function Transfers() {
   }
 
   const handleExport = () => {
-<<<<<<< HEAD
-    exportToCsv(`transferts_${new Date().toISOString().split('T')[0]}.csv`, [
-      ['ID', 'Expéditeur', 'Destinataire', 'Montant', 'Statut', 'Date', 'Agence'],
-      ...filteredTransfers.map(t => [t.id, t.expediteur.nom, t.destinataire.nom, `${t.montant} ${t.devise}`, t.statut, formatDate(t.dateCreation), t.agence.nom])
-    ])
-=======
-    // Créer un CSV des transferts filtrés
-    const csvContent = [
-      ['ID', 'Expéditeur', 'Destinataire', 'Montant', 'Statut', 'Date', 'Agence'].join(','),
-      ...filteredTransfers.map(transfer => [
-        transfer.id,
-        transfer.expediteur.nom,
-        transfer.destinataire.nom,
-        `${transfer.montant} ${transfer.devise}`,
-        transfer.statut,
-        formatDate(transfer.dateCreation),
-        transfer.agence.nom
-      ].join(','))
-    ].join('\n')
-
-    // Créer et télécharger le fichier
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `transferts_${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
     toast.success('Export des transferts téléchargé avec succès!')
   }
 
@@ -386,31 +328,8 @@ export default function Transfers() {
     toast.success(`Transfert ${transferId} suspendu pour vérification`)
   }
 
-<<<<<<< HEAD
-  const totalItems = filteredTransfers.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
-  const paged = filteredTransfers.slice((page-1)*pageSize, (page-1)*pageSize + pageSize)
-
   return (
-    <div className="p-6 space-y-6">
-      {/* Breadcrumb */}
-      <div className="mb-1">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/app/dashboard">Dashboard</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Transferts</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
-=======
-  return (
-    <div className="p-6 space-y-6">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -542,11 +461,6 @@ export default function Transfers() {
             </RicashTableRow>
           </RicashTableHeader>
           <RicashTableBody>
-<<<<<<< HEAD
-                {paged.map((transfer) => (
-=======
-                {filteredTransfers.map((transfer) => (
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
               <RicashTableRow key={transfer.id}>
                 <RicashTableCell>
                         <div>
@@ -629,30 +543,6 @@ export default function Transfers() {
           </RicashTableBody>
         </RicashTable>
       </RicashTableCard>
-<<<<<<< HEAD
-      <div className="flex items-center justify-between px-1">
-        <div className="text-sm text-[#376470]">Page {page} / {totalPages} • {totalItems} transferts</div>
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" onClick={()=> setPage(p => Math.max(1, p-1))} />
-            </PaginationItem>
-            {Array.from({ length: totalPages }).slice(0,5).map((_, idx) => {
-              const num = idx + 1
-              return (
-                <PaginationItem key={num}>
-                  <PaginationLink href="#" isActive={num === page} onClick={()=> setPage(num)}>{num}</PaginationLink>
-                </PaginationItem>
-              )
-            })}
-            <PaginationItem>
-              <PaginationNext href="#" onClick={()=> setPage(p => Math.min(totalPages, p+1))} />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
-=======
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
 
       {/* Pagination ou message si aucun résultat */}
       {filteredTransfers.length === 0 && (

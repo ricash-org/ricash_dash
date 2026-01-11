@@ -19,20 +19,10 @@ export function RicashCard({
       {(title || subtitle) && (
         <div className="p-6 border-b border-[#F4F2EE]">
           {title && (
-<<<<<<< HEAD
-            <h3 className="text-xl font-semibold text-[#29475B] mb-2">
-=======
-            <h3 className="text-xl font-semibold text-[#29475B] mb-2 truncate">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
               {title}
             </h3>
           )}
           {subtitle && (
-<<<<<<< HEAD
-            <p className="text-[#376470] text-sm">
-=======
-            <p className="text-[#376470] text-sm truncate">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
               {subtitle}
             </p>
           )}
@@ -70,34 +60,15 @@ export function RicashStatCard({
       {...domProps}
     >
       <div className="flex items-center justify-between mb-4">
-<<<<<<< HEAD
-        <div className="text-sm font-medium text-[#376470]">{title}</div>
-        {Icon && (
-          <div className="w-8 h-8 bg-[#2B8286]/10 rounded-lg flex items-center justify-center">
-=======
-        <div className="text-sm font-medium text-[#376470] truncate flex-1 min-w-0 mr-2">{title}</div>
-        {Icon && (
-          <div className="w-8 h-8 bg-[#2B8286]/10 rounded-lg flex items-center justify-center flex-shrink-0">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
             <Icon className={cn("h-4 w-4", iconColor || "text-[#2B8286]")} />
           </div>
         )}
       </div>
       
-<<<<<<< HEAD
-      <div className="text-2xl font-bold text-[#29475B] mb-2">
-=======
-      <div className="text-2xl font-bold text-[#29475B] mb-2 truncate">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
         {value}
       </div>
       
       {subtitle && (
-<<<<<<< HEAD
-        <div className="text-sm text-[#376470] mb-3">
-=======
-        <div className="text-sm text-[#376470] mb-3 truncate">
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
           {subtitle}
         </div>
       )}
@@ -105,19 +76,6 @@ export function RicashStatCard({
       {(trend || trendValue) && (
         <div className="flex items-center space-x-2">
           <div className={cn(
-<<<<<<< HEAD
-            "flex items-center space-x-1 text-sm font-medium",
-            trendUp ? "text-green-600" : "text-red-600"
-          )}>
-            <span>{trendValue}</span>
-            {trend && <span className="text-[#376470]">• {trend}</span>}
-=======
-            "flex items-center space-x-1 text-sm font-medium truncate",
-            trendUp ? "text-green-600" : "text-red-600"
-          )}>
-            <span className="truncate">{trendValue}</span>
-            {trend && <span className="text-[#376470] truncate">• {trend}</span>}
->>>>>>> b2b435d85c9b4936f607c4f528b67c75a4e07405
           </div>
         </div>
       )}
