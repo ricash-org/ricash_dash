@@ -97,6 +97,28 @@ src/
 
 Le routage est géré côté client via `useRouterStore` (`src/stores/router-store.ts`), sans routes Next.js multiples : une seule page (`/`) avec rendu conditionnel des vues.
 
+## Déploiement AWS Amplify
+
+Le back-office est exporté en **site statique** (`output: 'export'` → dossier `out/`), compatible avec l’hébergement Amplify.
+
+### Configuration requise
+
+Dans **Amplify Console → App settings → Build settings**, choisissez **« Build specification from repository »** (fichier `amplify.yml` à la racine). Ne gardez pas l’ancienne config Vite (`pnpm build` + artefact `dist/`).
+
+| Paramètre | Valeur |
+|-----------|--------|
+| Build | `npm run build` |
+| Artefacts | `out/` |
+| Node.js | 20 (`.nvmrc`) |
+
+### Déploiement
+
+```bash
+git push origin main
+```
+
+Le build exécute `npm ci`, puis `next build --webpack`, et publie le contenu de `out/`.
+
 ## Déploiement Vercel
 
 Le projet est prêt pour [Vercel](https://vercel.com) (Next.js détecté automatiquement).
