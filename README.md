@@ -99,17 +99,20 @@ Le routage est géré côté client via `useRouterStore` (`src/stores/router-sto
 
 ## Déploiement AWS Amplify
 
-Le back-office est exporté en **site statique** (`output: 'export'` → dossier `out/`), compatible avec l’hébergement Amplify.
+Next.js **14+** sur Amplify doit publier le dossier **`.next/`** (pas `out/` ni `dist/`), avec le framework **Next.js - SSR** (`WEB_COMPUTE`).
 
-### Configuration requise
+### Configuration requise (console Amplify)
 
-Dans **Amplify Console → App settings → Build settings**, choisissez **« Build specification from repository »** (fichier `amplify.yml` à la racine). Ne gardez pas l’ancienne config Vite (`pnpm build` + artefact `dist/`).
+1. **App settings → General → Platform** : `WEB_COMPUTE`
+2. **App settings → Build settings** : **Build specification from repository** (`amplify.yml`)
+3. **Node.js** : 20 (`.nvmrc` ou réglage console)
+4. Ne pas utiliser l’ancienne spec Vite (`pnpm build` + `dist/`)
 
 | Paramètre | Valeur |
 |-----------|--------|
 | Build | `npm run build` |
-| Artefacts | `out/` |
-| Node.js | 20 (`.nvmrc`) |
+| Artefacts | `.next/` |
+| Framework | Next.js - SSR |
 
 ### Déploiement
 
@@ -117,7 +120,7 @@ Dans **Amplify Console → App settings → Build settings**, choisissez **« Bu
 git push origin main
 ```
 
-Le build exécute `npm ci`, puis `next build --webpack`, et publie le contenu de `out/`.
+Le build exécute `npm ci`, puis `next build --webpack`. Amplify lit `.next/required-server-files.json` pour servir l’application.
 
 ## Déploiement Vercel
 

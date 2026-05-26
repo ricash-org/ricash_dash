@@ -3,16 +3,13 @@ frontend:
   phases:
     preBuild:
       commands:
-        - nvm install
-        - nvm use
-        - node -v
         - npm ci
     build:
       commands:
+        - export NODE_OPTIONS=--max-old-space-size=4096
         - npm run build
-        - test -d out || (echo "ERREUR: le dossier out/ est absent (export statique Next.js)" && exit 1)
   artifacts:
-    baseDirectory: out
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
