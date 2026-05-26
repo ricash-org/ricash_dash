@@ -99,20 +99,20 @@ Le routage est géré côté client via `useRouterStore` (`src/stores/router-sto
 
 ## Déploiement AWS Amplify
 
-Next.js **14+** sur Amplify doit publier le dossier **`.next/`** (pas `out/` ni `dist/`), avec le framework **Next.js - SSR** (`WEB_COMPUTE`).
+Ce back-office est une **SPA statique** (comme l’ancienne version Vite). Amplify doit publier le dossier **`out/`** (export Next.js), pas `.next/` ni `dist/`.
 
 ### Configuration requise (console Amplify)
 
-1. **App settings → General → Platform** : `WEB_COMPUTE`
-2. **App settings → Build settings** : **Build specification from repository** (`amplify.yml`)
-3. **Node.js** : 20 (`.nvmrc` ou réglage console)
-4. Ne pas utiliser l’ancienne spec Vite (`pnpm build` + `dist/`)
+1. **App settings → Build settings** : **Build specification from repository** (`amplify.yml`)
+2. **Platform** : hébergement **Web** (statique), pas obligatoirement `WEB_COMPUTE`
+3. **Node.js** : 20 (`.nvmrc`)
+4. Artefacts : `out/` avec `index.html` à la racine
 
 | Paramètre | Valeur |
 |-----------|--------|
 | Build | `npm run build` |
-| Artefacts | `.next/` |
-| Framework | Next.js - SSR |
+| Artefacts | `out/` |
+| Redirects SPA | `public/_redirects` + `customRedirects` dans `amplify.yml` |
 
 ### Déploiement
 
@@ -120,7 +120,7 @@ Next.js **14+** sur Amplify doit publier le dossier **`.next/`** (pas `out/` ni 
 git push origin main
 ```
 
-Le build exécute `npm ci`, puis `next build --webpack`. Amplify lit `.next/required-server-files.json` pour servir l’application.
+Le build exécute `npm ci`, puis `next build --webpack`, et Amplify sert `out/index.html` sur `https://admin.ri-cash.com`.
 
 ## Déploiement Vercel
 
